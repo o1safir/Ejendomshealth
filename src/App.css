@@ -112,9 +112,43 @@ body {
   padding: 1rem 2rem;
 }
 
-.app-header h1 {
+.app-logo-knap {
+  background: transparent;
+  border: none;
+  color: white;
   font-size: 1.25rem;
-  margin: 0;
+  font-weight: 700;
+  padding: 0;
+  cursor: pointer;
+  letter-spacing: -0.01em;
+}
+
+.app-logo-knap:hover {
+  background: transparent;
+  opacity: 0.85;
+}
+
+.app-nav {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex: 1;
+  padding-left: 1.5rem;
+}
+
+.nav-broed {
+  background: transparent;
+  border: none;
+  color: rgba(255,255,255,0.7);
+  font-size: 0.9rem;
+  padding: 0.2rem 0;
+  cursor: pointer;
+}
+
+.nav-broed:hover {
+  background: transparent;
+  color: white;
+  text-decoration: underline;
 }
 
 .logud-knap {
@@ -450,6 +484,246 @@ button:disabled {
   color: var(--tekst-graa);
   white-space: nowrap;
 }
+
+/* ---------- Kunder ---------- */
+.kunde-liste {
+  list-style: none;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.kunde-kort {
+  background: white;
+  border: 1px solid var(--kant);
+  border-radius: 8px;
+  padding: 1rem 1.25rem;
+  cursor: pointer;
+  transition: box-shadow 0.15s ease;
+}
+
+.kunde-kort:hover {
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08);
+}
+
+.kunde-kort-hoved {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 0.25rem;
+}
+
+.kunde-cvr {
+  font-size: 0.8rem;
+  color: var(--tekst-graa);
+  background: var(--groen-lys);
+  padding: 0.15rem 0.5rem;
+  border-radius: 12px;
+}
+
+.kunde-kort-meta {
+  display: flex;
+  gap: 1.25rem;
+  font-size: 0.85rem;
+  color: var(--tekst-graa);
+  flex-wrap: wrap;
+}
+
+.kunde-ejendoms-tal {
+  margin-left: auto;
+  font-weight: 600;
+  color: var(--groen-moerk);
+}
+
+/* Kunde-opret form */
+.kunde-form {
+  background: white;
+  border: 1px solid var(--kant);
+  border-radius: 8px;
+  padding: 1.25rem;
+  margin-bottom: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.cvr-soeg-raekke {
+  display: flex;
+  gap: 0.75rem;
+  align-items: flex-end;
+}
+
+.cvr-input-gruppe {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+  flex: 1;
+}
+
+.cvr-input {
+  padding: 0.5rem 0.75rem;
+  border: 1px solid var(--kant);
+  border-radius: 6px;
+  font-size: 0.9rem;
+  font-family: monospace;
+  letter-spacing: 0.05em;
+}
+
+.cvr-hent-knap {
+  white-space: nowrap;
+  align-self: flex-end;
+}
+
+.form-label {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--tekst-graa);
+}
+
+.form-fejl {
+  color: var(--fejl);
+  font-size: 0.85rem;
+  margin: -0.5rem 0 0;
+}
+
+.form-grid-2 {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.75rem;
+}
+
+.form-grid-2 input,
+.form-grid-2 select {
+  width: 100%;
+  padding: 0.5rem 0.75rem;
+  border: 1px solid var(--kant);
+  border-radius: 6px;
+  font-size: 0.9rem;
+}
+
+.form-grid-2-inner {
+  display: grid;
+  grid-template-columns: 100px 1fr;
+  gap: 0.5rem;
+}
+
+.form-knapper {
+  display: flex;
+  gap: 0.75rem;
+}
+
+/* Kunde detalje header */
+.kunde-header-info h2 {
+  margin: 0 0 0.3rem;
+}
+
+.kunde-header-meta {
+  display: flex;
+  gap: 1rem;
+  font-size: 0.85rem;
+  color: var(--tekst-graa);
+  flex-wrap: wrap;
+}
+
+.kunde-header-meta a {
+  color: var(--groen-mellem);
+  text-decoration: none;
+}
+
+.kunde-header-meta a:hover {
+  text-decoration: underline;
+}
+
+.kunde-rediger-form {
+  flex-wrap: wrap;
+  margin-bottom: 1.5rem;
+}
+
+/* Ejendom-opret-form i KunderDetaljePage */
+.ejendom-opret-form {
+  background: white;
+  border: 1px solid var(--kant);
+  border-radius: 8px;
+  padding: 1rem 1.25rem;
+  margin-bottom: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.ejendom-opret-form input {
+  width: 100%;
+  padding: 0.5rem 0.75rem;
+  border: 1px solid var(--kant);
+  border-radius: 6px;
+  font-size: 0.9rem;
+}
+
+.dawa-bekraeft {
+  font-size: 0.8rem;
+  color: var(--groen-moerk);
+  margin: 0.25rem 0 0;
+  font-weight: 500;
+}
+
+/* ---------- DAWA autocomplete ---------- */
+.dawa-wrapper {
+  position: relative;
+}
+
+.dawa-input {
+  width: 100%;
+  padding: 0.5rem 0.75rem;
+  border: 1px solid var(--kant);
+  border-radius: 6px;
+  font-size: 0.9rem;
+}
+
+.dawa-input:focus {
+  outline: none;
+  border-color: var(--groen-moerk);
+}
+
+.dawa-spinner {
+  position: absolute;
+  right: 0.75rem;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--tekst-graa);
+  font-size: 0.85rem;
+  pointer-events: none;
+}
+
+.dawa-forslag {
+  position: absolute;
+  top: calc(100% + 2px);
+  left: 0;
+  right: 0;
+  background: white;
+  border: 1px solid var(--kant);
+  border-radius: 6px;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.1);
+  list-style: none;
+  padding: 0.25rem 0;
+  margin: 0;
+  z-index: 100;
+  max-height: 260px;
+  overflow-y: auto;
+}
+
+.dawa-forslag li {
+  padding: 0.55rem 0.9rem;
+  font-size: 0.875rem;
+  cursor: pointer;
+  color: var(--tekst-moerk);
+}
+
+.dawa-forslag li:hover {
+  background: var(--groen-lys);
+}
+
+/* ---------- Shared form label ---------- */
 
 .brand-valg select {
   padding: 0.4rem 0.75rem;

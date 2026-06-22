@@ -1,8 +1,23 @@
 // Centrale typer for datamodellen.
 // Holdes i sync med sql/001_initial_schema.sql
 
+export interface Kunde {
+  id: string
+  cvr: string | null
+  navn: string
+  adresse: string | null
+  postnr: string | null
+  by: string | null
+  telefon: string | null
+  email: string | null
+  kontaktperson: string | null
+  branche: string | null
+  created_at: string
+}
+
 export interface Ejendom {
   id: string
+  kunde_id: string | null
   navn: string
   adresse: string | null
   postnr: string | null
