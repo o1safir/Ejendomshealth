@@ -1,0 +1,370 @@
+:root {
+  --groen-moerk: #1b3a2f;
+  --groen-mellem: #2e5443;
+  --groen-lys: #e8f0ec;
+  --creme: #faf8f4;
+  --tekst-moerk: #1f2421;
+  --tekst-graa: #6b7570;
+  --kant: #d8ddd9;
+  --fejl: #b3372c;
+  --hoej-urgency: #b3372c;
+  --middel-urgency: #c4821a;
+  --lav-urgency: #4a7a63;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  background: var(--creme);
+  color: var(--tekst-moerk);
+}
+
+.centreret {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100vh;
+  color: var(--tekst-graa);
+}
+
+/* ---------- Login ---------- */
+.login-page {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100vh;
+  background: var(--groen-moerk);
+}
+
+.login-card {
+  background: var(--creme);
+  padding: 2.5rem;
+  border-radius: 8px;
+  width: 100%;
+  max-width: 360px;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.25);
+}
+
+.login-card h1 {
+  margin: 0;
+  font-size: 1.5rem;
+  color: var(--groen-moerk);
+}
+
+.login-subtitle {
+  margin: 0 0 1rem;
+  color: var(--tekst-graa);
+  font-size: 0.9rem;
+}
+
+.login-card label {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--tekst-graa);
+}
+
+.login-card input {
+  padding: 0.6rem 0.75rem;
+  border: 1px solid var(--kant);
+  border-radius: 6px;
+  font-size: 1rem;
+}
+
+.login-card button {
+  margin-top: 0.75rem;
+  background: var(--groen-moerk);
+  color: white;
+  border: none;
+  padding: 0.7rem;
+  border-radius: 6px;
+  font-size: 1rem;
+  cursor: pointer;
+}
+
+.login-card button:hover {
+  background: var(--groen-mellem);
+}
+
+.login-error {
+  color: var(--fejl);
+  font-size: 0.85rem;
+  margin: 0;
+}
+
+/* ---------- App shell ---------- */
+.app-shell {
+  min-height: 100vh;
+}
+
+.app-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: var(--groen-moerk);
+  color: white;
+  padding: 1rem 2rem;
+}
+
+.app-header h1 {
+  font-size: 1.25rem;
+  margin: 0;
+}
+
+.logud-knap {
+  background: transparent;
+  border: 1px solid rgba(255, 255, 255, 0.4);
+  color: white;
+  padding: 0.4rem 0.9rem;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.logud-knap:hover {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+main {
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 2rem;
+}
+
+/* ---------- Generic page elements ---------- */
+.page-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+}
+
+.page-header h2,
+.page-header h3 {
+  margin: 0;
+}
+
+button {
+  background: var(--groen-moerk);
+  color: white;
+  border: none;
+  padding: 0.5rem 1rem;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 0.9rem;
+}
+
+button:hover {
+  background: var(--groen-mellem);
+}
+
+button:disabled {
+  background: var(--tekst-graa);
+  cursor: not-allowed;
+}
+
+.tilbage-knap {
+  background: transparent;
+  color: var(--groen-mellem);
+  padding: 0;
+  margin-bottom: 1rem;
+  font-size: 0.9rem;
+}
+
+.tilbage-knap:hover {
+  background: transparent;
+  text-decoration: underline;
+}
+
+.fejl-besked {
+  background: #fdecea;
+  color: var(--fejl);
+  padding: 0.75rem 1rem;
+  border-radius: 6px;
+  font-size: 0.9rem;
+}
+
+.tom-tilstand {
+  color: var(--tekst-graa);
+  font-style: italic;
+  padding: 1.5rem;
+  text-align: center;
+  border: 1px dashed var(--kant);
+  border-radius: 8px;
+}
+
+.inline-form {
+  display: flex;
+  gap: 0.5rem;
+  margin-bottom: 1.5rem;
+  flex-wrap: wrap;
+}
+
+.inline-form input,
+.inline-form select {
+  padding: 0.5rem 0.75rem;
+  border: 1px solid var(--kant);
+  border-radius: 6px;
+  font-size: 0.9rem;
+}
+
+.aftale-form {
+  background: white;
+  padding: 1rem;
+  border-radius: 8px;
+  border: 1px solid var(--kant);
+  align-items: center;
+}
+
+.dato-label,
+.checkbox-label {
+  display: flex;
+  flex-direction: column;
+  font-size: 0.8rem;
+  color: var(--tekst-graa);
+  gap: 0.2rem;
+}
+
+.checkbox-label {
+  flex-direction: row;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+/* ---------- Ejendomsliste ---------- */
+.ejendoms-liste {
+  list-style: none;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.ejendoms-kort {
+  background: white;
+  border: 1px solid var(--kant);
+  border-radius: 8px;
+  padding: 1rem 1.25rem;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  transition: box-shadow 0.15s ease;
+}
+
+.ejendoms-kort:hover {
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08);
+}
+
+.ejendoms-adresse {
+  color: var(--tekst-graa);
+  font-size: 0.85rem;
+}
+
+/* ---------- Aftale-tabel ---------- */
+.modul-sektion {
+  margin-bottom: 2rem;
+}
+
+.aftale-tabel {
+  width: 100%;
+  border-collapse: collapse;
+  background: white;
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.aftale-tabel th,
+.aftale-tabel td {
+  text-align: left;
+  padding: 0.6rem 0.9rem;
+  border-bottom: 1px solid var(--kant);
+  font-size: 0.9rem;
+}
+
+.aftale-tabel th {
+  background: var(--groen-lys);
+  color: var(--groen-moerk);
+  font-weight: 600;
+}
+
+.slet-knap {
+  background: transparent;
+  color: var(--fejl);
+  padding: 0.2rem 0.5rem;
+  font-size: 0.8rem;
+}
+
+.slet-knap:hover {
+  background: #fdecea;
+}
+
+/* ---------- Resultat-boks ---------- */
+.resultat-boks {
+  background: var(--groen-lys);
+  border-radius: 10px;
+  padding: 1.5rem;
+  border: 1px solid var(--groen-mellem);
+}
+
+.resultat-boks h3 {
+  margin-top: 0;
+  color: var(--groen-moerk);
+}
+
+.urgency-label {
+  font-weight: 600;
+  color: var(--middel-urgency);
+  margin-top: -0.5rem;
+}
+
+.resultat-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 1rem;
+  margin: 1rem 0;
+}
+
+.resultat-label {
+  display: block;
+  font-size: 0.8rem;
+  color: var(--tekst-graa);
+  margin-bottom: 0.2rem;
+}
+
+.resultat-grid strong {
+  font-size: 1.2rem;
+  color: var(--groen-moerk);
+}
+
+.resultat-disclaimer {
+  font-size: 0.8rem;
+  color: var(--tekst-graa);
+  margin-bottom: 1rem;
+}
+
+.brand-valg {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 1rem;
+}
+
+.brand-valg label {
+  font-size: 0.875rem;
+  color: var(--tekst-graa);
+  white-space: nowrap;
+}
+
+.brand-valg select {
+  padding: 0.4rem 0.75rem;
+  border: 1px solid var(--kant);
+  border-radius: 6px;
+  font-size: 0.875rem;
+  background: white;
+  color: var(--tekst-moerk);
+}

@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="da">
+<head>
+<meta charset="UTF-8">
+<style>
+  @page {
+    size: A4;
+    margin: 2.2cm 2cm;
+    @bottom-center {
+      content: "{{ brand_navn }} · {{ brand_cvr }} · Side " counter(page) " af " counter(pages);
+      font-size: 8pt;
+      color: #6b7570;
+    }
+  }
+
+  body {
+    font-family: 'Helvetica Neue', Arial, sans-serif;
+    color: #1f2421;
+    font-size: 11pt;
+    line-height: 1.5;
+  }
+
+  .header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    border-bottom: 3px solid {{ primaer_farve }};
+    padding-bottom: 1rem;
+    margin-bottom: 2rem;
+  }
+
+  .header h1 {
+    color: {{ primaer_farve }};
+    font-size: 20pt;
+    margin: 0 0 0.2rem 0;
+  }
+
+  .header .subtitle {
+    color: #6b7570;
+    font-size: 10pt;
+  }
+
+  .brand-block {
+    text-align: right;
+    font-size: 9pt;
+    color: #6b7570;
+  }
+
+  .brand-block strong {
+    color: {{ primaer_farve }};
+    font-size: 11pt;
+  }
+
+  .ejendom-info {
+    background: #f6f4f0;
+    border-radius: 6px;
+    padding: 1rem 1.25rem;
+    margin-bottom: 1.5rem;
+  }
+
+  .ejendom-info h2 {
+    margin: 0 0 0.3rem 0;
+    font-size: 14pt;
+  }
+
+  .ejendom-info .adresse {
+    color: #6b7570;
+    font-size: 10pt;
+  }
+
+  .urgency-badge {
+    display: inline-block;
+    padding: 0.3rem 0.9rem;
+    border-radius: 20px;
+    font-size: 10pt;
+    font-weight: bold;
+    color: white;
+    background: {{ urgency_farve }};
+    margin-bottom: 1.5rem;
+  }
+
+  .resultat-grid {
+    display: flex;
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+  }
+
+  .resultat-celle {
+    flex: 1;
+    background: #f6f4f0;
+    border-left: 4px solid {{ primaer_farve }};
+    padding: 0.8rem 1rem;
+    border-radius: 4px;
+  }
+
+  .resultat-celle .label {
+    font-size: 8.5pt;
+    color: #6b7570;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+  }
+
+  .resultat-celle .vaerdi {
+    font-size: 15pt;
+    font-weight: bold;
+    color: {{ primaer_farve }};
+  }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: 1.5rem;
+  }
+
+  th, td {
+    text-align: left;
+    padding: 0.5rem 0.7rem;
+    border-bottom: 1px solid #d8ddd9;
+    font-size: 9.5pt;
+  }
+
+  th {
+    background: {{ primaer_farve }};
+    color: white;
+    font-weight: 600;
+  }
+
+  .analyse-tekst {
+    margin-bottom: 1.5rem;
+  }
+
+  .footer-note {
+    font-size: 8.5pt;
+    color: #6b7570;
+    border-top: 1px solid #d8ddd9;
+    padding-top: 0.8rem;
+    margin-top: 2rem;
+  }
+
+  .kontakt-boks {
+    background: {{ primaer_farve }};
+    color: white;
+    border-radius: 6px;
+    padding: 1.2rem 1.5rem;
+    margin-top: 1.5rem;
+  }
+
+  .kontakt-boks h3 {
+    margin: 0 0 0.5rem 0;
+    font-size: 12pt;
+  }
+
+  .kontakt-boks p {
+    margin: 0.1rem 0;
+    font-size: 9.5pt;
+  }
+</style>
+</head>
+<body>
+
+  <div class="header">
+    <div>
+      <h1>Besparelsesrapport</h1>
+      <div class="subtitle">Vurdering af besparelsespotentiale på faste aftaler</div>
+    </div>
+    <div class="brand-block">
+      <strong>{{ brand_navn }}</strong><br>
+      {{ brand_adresse }}<br>
+      CVR {{ brand_cvr }}
+    </div>
+  </div>
+
+  <div class="ejendom-info">
+    <h2>{{ ejendom_navn }}</h2>
+    <div class="adresse">{{ ejendom_adresse }}</div>
+  </div>
+
+  <span class="urgency-badge">{{ urgency_label }}</span>
+
+  <div class="resultat-grid">
+    <div class="resultat-celle">
+      <div class="label">Estimeret besparelse</div>
+      <div class="vaerdi">{{ min_besparelse }} – {{ max_besparelse }} kr./år</div>
+    </div>
+    <div class="resultat-celle">
+      <div class="label">Besparelsesprocent</div>
+      <div class="vaerdi">{{ besparelses_procent_spaend }}</div>
+    </div>
+    <div class="resultat-celle">
+      <div class="label">{{ brand_navn }} honorar</div>
+      <div class="vaerdi">{{ honorar }} kr.</div>
+    </div>
+  </div>
+
+  <p class="analyse-tekst">{{ analyse_tekst }}</p>
+
+  <h3>Grundlag for vurderingen</h3>
+  <table>
+    <thead>
+      <tr>
+        <th>Kategori</th>
+        <th>Leverandør</th>
+        <th>Pris/år</th>
+        <th>Sidst genforhandlet</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for aftale in aftaler %}
+      <tr>
+        <td>{{ aftale.kategori }}</td>
+        <td>{{ aftale.leverandoer }}</td>
+        <td>{{ aftale.pris }} kr.</td>
+        <td>{{ aftale.genforhandlet }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+
+  <div class="kontakt-boks">
+    <h3>Næste skridt</h3>
+    <p>Ønsker du en uddybende, dokumenteret gennemgang af besparelsespotentialet, er du velkommen til at kontakte os.</p>
+    <p>{{ kontaktperson }}, {{ kontakt_titel }}</p>
+    <p>{{ kontakt_email }} · {{ kontakt_telefon }}</p>
+  </div>
+
+  <div class="footer-note">
+    Denne rapport er baseret på de oplysninger, der er registreret på rapporteringstidspunktet
+    ({{ genereret_dato }}), og udgør et estimat. Det faktiske besparelsespotentiale kan
+    afvige og bør verificeres ved en konkret gennemgang af de underliggende aftaler.
+  </div>
+
+</body>
+</html>
