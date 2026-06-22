@@ -20,6 +20,7 @@ export default function EjendomsDetaljePage({ ejendom, onTilbage }: Props) {
   const [aftaler, setAftaler] = useState<Aftale[]>([])
   const [brands, setBrands] = useState<Brand[]>([])
   const [selectedBrandNavn, setSelectedBrandNavn] = useState<string>('')
+  const [internIndkoeb, setInternIndkoeb] = useState<boolean>(ejendom.intern_indkoeb_findes ?? false)
   const [loading, setLoading] = useState(true)
   const [visForm, setVisForm] = useState(false)
   const [genererer, setGenererer] = useState(false)
@@ -30,7 +31,6 @@ export default function EjendomsDetaljePage({ ejendom, onTilbage }: Props) {
   const [leverandoer, setLeverandoer] = useState('')
   const [pris, setPris] = useState('')
   const [genforhandlet, setGenforhandlet] = useState('')
-  const [internIndkoeb, setInternIndkoeb] = useState(false)
 
   async function hentData() {
     setLoading(true)
@@ -59,6 +59,12 @@ export default function EjendomsDetaljePage({ ejendom, onTilbage }: Props) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [ejendom.id])
 
+  async function handleToggleInternIndkoeb() {
+    const nyVaerdi = !internIndkoeb
+    setInternIndkoeb(nyVaerdi)
+    await supabase.from('ejendomme').update({ intern_indkoeb_findes: nyVaerdi }).eq('id', ejendom.id)
+  }
+
   async function handleOpretAftale(e: FormEvent) {
     e.preventDefault()
     const { error } = await supabase.from('aftaler').insert({
@@ -67,7 +73,6 @@ export default function EjendomsDetaljePage({ ejendom, onTilbage }: Props) {
       leverandoer: leverandoer.trim() || null,
       nuvaerende_pris: pris ? Number(pris) : null,
       sidst_genforhandlet: genforhandlet || null,
-      intern_indkoeb_findes: internIndkoeb,
     })
 
     if (error) {
@@ -129,7 +134,7 @@ export default function EjendomsDetaljePage({ ejendom, onTilbage }: Props) {
     }
   }
 
-  const resultat = beregnBesparelse(aftaler)
+  const resultat = beregnBesparelse(aftaler, internIndkoeb)
 
   return (
     <div className="page">
@@ -140,6 +145,24 @@ export default function EjendomsDetaljePage({ ejendom, onTilbage }: Props) {
       <div className="page-header">
         <h2>{ejendom.navn}</h2>
         {ejendom.adresse && <span className="ejendoms-adresse">{ejendom.adresse}</span>}
+      </div>
+
+      <div className="ejendom-indstillinger">
+        <label className="toggle-label">
+          <span>Intern indkøbsfunktion</span>
+          <button
+            type="button"
+            className={`toggle-knap ${internIndkoeb ? 'toggle-aktiv' : ''}`}
+            onClick={handleToggleInternIndkoeb}
+          >
+            {internIndkoeb ? 'Ja' : 'Nej'}
+          </button>
+        </label>
+        <span className="toggle-hjaelp">
+          {internIndkoeb
+            ? 'Ejendommen/organisationen har en intern indkøbsfunktion (−4% justering)'
+            : 'Ingen intern indkøbsfunktion (+4% justering)'}
+        </span>
       </div>
 
       {fejl && <p className="fejl-besked">{fejl}</p>}
@@ -179,14 +202,6 @@ export default function EjendomsDetaljePage({ ejendom, onTilbage }: Props) {
                 value={genforhandlet}
                 onChange={(e) => setGenforhandlet(e.target.value)}
               />
-            </label>
-            <label className="checkbox-label">
-              <input
-                type="checkbox"
-                checked={internIndkoeb}
-                onChange={(e) => setInternIndkoeb(e.target.checked)}
-              />
-              Intern indkøbsfunktion findes
             </label>
             <button type="submit">Tilføj</button>
           </form>

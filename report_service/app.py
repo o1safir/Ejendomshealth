@@ -102,7 +102,7 @@ def generer_rapport():
     brand = brand_res.data[0] if brand_res.data else {}
 
     # --- Beregn (autoritativ Python-version) ---
-    resultat = beregn_besparelse(aftaler)
+    resultat = beregn_besparelse(aftaler, intern_indkoeb=bool(ejendom.get("intern_indkoeb_findes")))
     if resultat is None:
         return jsonify({"fejl": "Kunne ikke beregne besparelse — tjek at aftaler har en pris"}), 400
 

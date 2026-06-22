@@ -50,7 +50,7 @@ def _urgency_for_rf(rf: float) -> str:
     return "høj"
 
 
-def beregn_besparelse(aftaler: list[dict[str, Any]]) -> dict[str, Any] | None:
+def beregn_besparelse(aftaler: list[dict[str, Any]], intern_indkoeb: bool = False) -> dict[str, Any] | None:
     if not aftaler:
         return None
 
@@ -70,9 +70,8 @@ def beregn_besparelse(aftaler: list[dict[str, Any]]) -> dict[str, Any] | None:
     aeldste_aar = max(aldre) if aldre else 4.0
     rate = _rate_for_alder(aeldste_aar)
 
-    # Indkøbsfunktionsjustering
-    ingen_intern = all(not a.get("intern_indkoeb_findes") for a in aftaler)
-    buying = 0.04 if ingen_intern else -0.04
+    # Indkøbsfunktionsjustering (ejendoms-niveau, ikke per-aftale)
+    buying = -0.04 if intern_indkoeb else 0.04
 
     # Samlet besparelsesrate — min 4%, max 22%
     rf = min(0.22, max(0.04, rate + cw + buying))

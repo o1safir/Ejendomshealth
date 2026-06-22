@@ -47,7 +47,7 @@ function urgencyForRf(rf: number): BesparelsesResultat['urgency'] {
   return 'høj'
 }
 
-export function beregnBesparelse(aftaler: Aftale[]): BesparelsesResultat | null {
+export function beregnBesparelse(aftaler: Aftale[], internIndkoeb: boolean): BesparelsesResultat | null {
   if (aftaler.length === 0) return null
 
   const total = aftaler.reduce((sum, a) => sum + (a.nuvaerende_pris ?? 0), 0)
@@ -68,9 +68,8 @@ export function beregnBesparelse(aftaler: Aftale[]): BesparelsesResultat | null 
   const aeldsteAar = aldre.length > 0 ? Math.max(...aldre) : 4
   const rate = rateForAlder(aeldsteAar)
 
-  // Indkøbsfunktionsjustering
-  const ingenInternIndkoeb = aftaler.every((a) => !a.intern_indkoeb_findes)
-  const buying = ingenInternIndkoeb ? 0.04 : -0.04
+  // Indkøbsfunktionsjustering (ejendoms-niveau, ikke per-aftale)
+  const buying = internIndkoeb ? -0.04 : 0.04
 
   // Samlet besparelsesrate — min 4%, max 22%
   const rf = Math.min(0.22, Math.max(0.04, rate + cw + buying))

@@ -15,6 +15,7 @@ export interface Ejendom {
   antal_enheder: number | null
   anvendelse: string | null
   noter: string | null
+  intern_indkoeb_findes: boolean
   created_at: string
   updated_at: string
 }
