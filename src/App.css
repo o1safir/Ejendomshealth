@@ -292,6 +292,12 @@ button:disabled {
   font-weight: 600;
 }
 
+.aftale-handlinger {
+  display: flex;
+  gap: 0.4rem;
+  white-space: nowrap;
+}
+
 .slet-knap {
   background: transparent;
   color: var(--fejl);
@@ -301,6 +307,49 @@ button:disabled {
 
 .slet-knap:hover {
   background: #fdecea;
+}
+
+.aftale-handlinger button:not(.slet-knap) {
+  background: transparent;
+  color: var(--groen-moerk);
+  border: 1px solid var(--kant);
+  padding: 0.2rem 0.5rem;
+  font-size: 0.8rem;
+}
+
+.aftale-handlinger button:not(.slet-knap):hover {
+  background: var(--groen-lys);
+}
+
+.aftale-rediger-rad td {
+  background: #f7fbf8;
+  padding: 0.4rem 0.5rem;
+}
+
+.aftale-rediger-rad input,
+.aftale-rediger-rad select {
+  width: 100%;
+  padding: 0.3rem 0.5rem;
+  border: 1px solid var(--kant);
+  border-radius: 4px;
+  font-size: 0.85rem;
+}
+
+.rediger-knap {
+  background: transparent;
+  color: var(--groen-moerk);
+  border: 1px solid var(--groen-moerk);
+  padding: 0.35rem 0.8rem;
+  font-size: 0.85rem;
+}
+
+.rediger-knap:hover {
+  background: var(--groen-lys);
+}
+
+.ejendom-rediger-form {
+  margin-bottom: 1.5rem;
+  align-items: center;
 }
 
 /* ---------- Resultat-boks ---------- */
