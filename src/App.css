@@ -723,6 +723,73 @@ button:disabled {
   background: var(--groen-lys);
 }
 
+/* ---------- BBR-berigelse ---------- */
+.bbr-status {
+  font-size: 0.85rem;
+  padding: 0.5rem 0.75rem;
+  border-radius: 6px;
+}
+
+.bbr-henter {
+  background: var(--groen-lys);
+  color: var(--groen-moerk);
+}
+
+.bbr-ok {
+  background: #e8f5ee;
+  color: #1e6e3e;
+  font-weight: 500;
+}
+
+.bbr-advarsel {
+  background: #fff8ee;
+  color: #7a4f10;
+}
+
+.bbr-felter-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  gap: 0.6rem;
+}
+
+.bbr-felter-grid input {
+  width: 100%;
+  padding: 0.45rem 0.65rem;
+  border: 1px solid var(--kant);
+  border-radius: 6px;
+  font-size: 0.875rem;
+}
+
+.bbr-autofyldt {
+  background: #f0faf4 !important;
+  border-color: #7fbf9e !important;
+  color: var(--groen-moerk);
+}
+
+/* Ejendom-kort med chips */
+.ejendom-kort-hoved {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.ejendom-kort-chips {
+  display: flex;
+  gap: 0.35rem;
+  flex-wrap: wrap;
+}
+
+.ejendom-chip {
+  font-size: 0.75rem;
+  background: var(--groen-lys);
+  color: var(--groen-moerk);
+  padding: 0.1rem 0.5rem;
+  border-radius: 12px;
+  font-weight: 500;
+  white-space: nowrap;
+}
+
 /* ---------- Shared form label ---------- */
 
 .brand-valg select {

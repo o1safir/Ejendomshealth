@@ -15,6 +15,7 @@ import os
 from datetime import datetime, timezone
 from io import BytesIO
 
+import requests as http
 from flask import Flask, jsonify, request, send_file
 from flask_cors import CORS
 from jinja2 import Environment, FileSystemLoader
@@ -72,6 +73,62 @@ def _kr(value: float) -> str:
 @app.route("/health", methods=["GET"])
 def health():
     return jsonify({"status": "ok"})
+
+
+@app.route("/bbr-opslag", methods=["GET"])
+def bbr_opslag():
+    """
+    Slår en adresse op i Datafordeleren BBR og returnerer bygningsdata.
+    Kræver BBR_USERNAME og BBR_PASSWORD sat som miljøvariabler på Render.
+    Returnerer tomt objekt (ikke fejl) hvis credentials mangler — feature deaktiveres stille.
+    """
+    adgangsadresse_id = request.args.get("id", "").strip()
+    if not adgangsadresse_id:
+        return jsonify({"fejl": "id er påkrævet"}), 400
+
+    bbr_user = os.environ.get("BBR_USERNAME")
+    bbr_pass = os.environ.get("BBR_PASSWORD")
+    if not bbr_user or not bbr_pass:
+        # Credentials ikke sat endnu — returner tomt resultat, ikke fejl
+        return jsonify({}), 200
+
+    try:
+        r = http.get(
+            "https://services.datafordeler.dk/BBR/BBRPublic/1/rest/bygning",
+            params={
+                "username": bbr_user,
+                "password": bbr_pass,
+                "husnummer": adgangsadresse_id,
+                "format": "json",
+            },
+            timeout=8,
+        )
+        if not r.ok:
+            app.logger.warning(f"BBR svarede {r.status_code}")
+            return jsonify({}), 200
+
+        bygninger: list[dict] = r.json()
+    except Exception as e:
+        app.logger.warning(f"BBR-opslag fejlede: {e}")
+        return jsonify({}), 200
+
+    if not bygninger:
+        return jsonify({}), 200
+
+    # Vælg den bygning med størst samlet areal (primær bygning på adressen)
+    bygning = max(bygninger, key=lambda b: b.get("byg_samletBygningsareal") or 0)
+
+    bolig = bygning.get("byg_antal_boligenheder") or 0
+    erhverv = bygning.get("byg_antal_erhvervsenheder") or 0
+    antal = bolig + erhverv
+
+    return jsonify({
+        "areal_m2": bygning.get("byg_samletBygningsareal"),
+        "opfoerelsesaar": bygning.get("byg_opfoerelsesaar"),
+        "antal_enheder": antal if antal > 0 else None,
+        "bbr_nr": str(bygning.get("BFEnummer")) if bygning.get("BFEnummer") else None,
+        "matrikel_nr": bygning.get("matrikelnr"),
+    })
 
 
 @app.route("/generer-rapport", methods=["POST"])
