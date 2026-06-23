@@ -252,6 +252,73 @@ def generer_rapport():
     )
 
 
+@app.route("/energimaerke-opslag", methods=["GET"])
+def energimaerke_opslag():
+    """
+    Henter energimærke fra Energistyrelsens EMO-system.
+    Kræver ingen credentials — data er offentligt tilgængeligt.
+    """
+    vejnavn = request.args.get("vejnavn", "").strip()
+    husnr = request.args.get("husnr", "").strip()
+    postnr = request.args.get("postnr", "").strip()
+
+    if not vejnavn or not postnr:
+        return jsonify({}), 200
+
+    try:
+        r = http.get(
+            "https://emoweb.dk/EMOData/EMOData.svc/json/FindEjendom",
+            params={"vejnavn": vejnavn, "husnr": husnr, "postnr": postnr, "bynavn": ""},
+            timeout=8,
+            headers={"Accept": "application/json"},
+        )
+        if not r.ok:
+            app.logger.warning(f"Energimærke svarede {r.status_code}: {r.text[:200]}")
+            return jsonify({}), 200
+
+        app.logger.info(f"Energimærke rå svar: {r.text[:600]}")
+        data = r.json()
+
+        # Normaliser svaret — strukturen kan variere
+        result = data.get("FindEjendomResult") or data
+        if isinstance(result, dict):
+            ejdomme = result.get("EjendomList", {})
+            if isinstance(ejdomme, dict):
+                ejdomme = ejdomme.get("Ejendom", [])
+            if isinstance(ejdomme, dict):
+                ejdomme = [ejdomme]
+        elif isinstance(result, list):
+            ejdomme = result
+        else:
+            ejdomme = []
+
+        if not ejdomme:
+            return jsonify({}), 200
+
+        ej = ejdomme[0]
+        maerker = ej.get("Energimaerker", {})
+        if isinstance(maerker, dict):
+            maerker = maerker.get("Energimaerke", [])
+        if isinstance(maerker, dict):
+            maerker = [maerker]
+
+        if not maerker:
+            return jsonify({}), 200
+
+        # Seneste gyldige mærke øverst
+        maerke = sorted(maerker, key=lambda x: x.get("GyldigFra") or "", reverse=True)[0]
+        gyldigt_til = maerke.get("GyldigTil") or ""
+
+        return jsonify({
+            "label": maerke.get("EnergiLabel") or maerke.get("Energimaerke"),
+            "gyldigt_til": gyldigt_til[:10] if gyldigt_til else None,
+        })
+
+    except Exception as e:
+        app.logger.warning(f"Energimærke-opslag fejlede: {e}")
+        return jsonify({}), 200
+
+
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 8000))
     app.run(host="0.0.0.0", port=port)

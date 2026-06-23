@@ -39,9 +39,15 @@ export default function KunderDetaljePage({ kunde, onTilbage, onSelectEjendom }:
   const [ejAntalEnheder, setEjAntalEnheder] = useState('')
   const [ejBbrNr, setEjBbrNr] = useState('')
   const [ejMatrikelNr, setEjMatrikelNr] = useState('')
+  const [ejVejnavn, setEjVejnavn] = useState('')
+  const [ejHusnr, setEjHusnr] = useState('')
+  const [ejEnergimaerke, setEjEnergimaerke] = useState('')
+  const [ejEnergimaerkeGyldigt, setEjEnergimaerkeGyldigt] = useState('')
   const [dawaValgt, setDawaValgt] = useState(false)
   const [bbrLoading, setBbrLoading] = useState(false)
   const [bbrStatus, setBbrStatus] = useState<'idle' | 'ok' | 'tom' | 'fejl'>('idle')
+  const [emLoading, setEmLoading] = useState(false)
+  const [emStatus, setEmStatus] = useState<'idle' | 'ok' | 'tom'>('idle')
 
   async function hentEjendomme() {
     setLoading(true)
@@ -60,22 +66,29 @@ export default function KunderDetaljePage({ kunde, onTilbage, onSelectEjendom }:
   async function handleDawaValgt(a: ValgtAdresse) {
     setEjAdresse(a.fuld_tekst)
     setEjPostnr(a.postnr)
+    setEjVejnavn(a.vejnavn)
+    setEjHusnr(a.husnr)
     if (!ejNavn) setEjNavn(a.fuld_tekst)
     setDawaValgt(true)
     setBbrStatus('idle')
+    setEmStatus('idle')
 
-    // Kald BBR-proxy via vores backend
     const rapportUrl = import.meta.env.VITE_RAPPORT_SERVICE_URL
     if (!rapportUrl) return
 
+    // BBR og energimærke køres parallelt
     setBbrLoading(true)
-    try {
-      const res = await fetch(
-        `${rapportUrl}/bbr-opslag?id=${encodeURIComponent(a.adgangsadresseid)}&adresse_id=${encodeURIComponent(a.adresse_id)}`
-      )
-      if (!res.ok) { setBbrStatus('fejl'); return }
-      const data: BBRData = await res.json()
+    setEmLoading(true)
 
+    const [bbrRes, emRes] = await Promise.allSettled([
+      fetch(`${rapportUrl}/bbr-opslag?id=${encodeURIComponent(a.adgangsadresseid)}&adresse_id=${encodeURIComponent(a.adresse_id)}`),
+      fetch(`${rapportUrl}/energimaerke-opslag?vejnavn=${encodeURIComponent(a.vejnavn)}&husnr=${encodeURIComponent(a.husnr)}&postnr=${encodeURIComponent(a.postnr)}`),
+    ])
+
+    // BBR
+    setBbrLoading(false)
+    if (bbrRes.status === 'fulfilled' && bbrRes.value.ok) {
+      const data: BBRData = await bbrRes.value.json()
       if (!data.areal_m2 && !data.opfoerelsesaar) {
         setBbrStatus('tom')
       } else {
@@ -86,18 +99,33 @@ export default function KunderDetaljePage({ kunde, onTilbage, onSelectEjendom }:
         setEjMatrikelNr(data.matrikel_nr ?? '')
         setBbrStatus('ok')
       }
-    } catch {
+    } else {
       setBbrStatus('fejl')
-    } finally {
-      setBbrLoading(false)
+    }
+
+    // Energimærke
+    setEmLoading(false)
+    if (emRes.status === 'fulfilled' && emRes.value.ok) {
+      const emData: { label?: string; gyldigt_til?: string } = await emRes.value.json()
+      if (emData.label) {
+        setEjEnergimaerke(emData.label)
+        setEjEnergimaerkeGyldigt(emData.gyldigt_til ?? '')
+        setEmStatus('ok')
+      } else {
+        setEmStatus('tom')
+      }
+    } else {
+      setEmStatus('tom')
     }
   }
 
   function nulstilEjendomForm() {
     setEjNavn(''); setEjAdresse(''); setEjPostnr('')
+    setEjVejnavn(''); setEjHusnr('')
     setEjAreal(''); setEjOpfoerelsesaar(''); setEjAntalEnheder('')
     setEjBbrNr(''); setEjMatrikelNr('')
-    setDawaValgt(false); setBbrStatus('idle')
+    setEjEnergimaerke(''); setEjEnergimaerkeGyldigt('')
+    setDawaValgt(false); setBbrStatus('idle'); setEmStatus('idle')
   }
 
   async function handleOpretEjendom(e: FormEvent) {
@@ -112,6 +140,8 @@ export default function KunderDetaljePage({ kunde, onTilbage, onSelectEjendom }:
       antal_enheder: ejAntalEnheder ? Number(ejAntalEnheder) : null,
       bbr_nr: ejBbrNr.trim() || null,
       matrikel_nr: ejMatrikelNr.trim() || null,
+      energimaerke: ejEnergimaerke.trim() || null,
+      energimaerke_gyldigt_til: ejEnergimaerkeGyldigt || null,
       intern_indkoeb_findes: false,
     })
     if (error) { setFejl(error.message); return }
@@ -185,18 +215,24 @@ export default function KunderDetaljePage({ kunde, onTilbage, onSelectEjendom }:
               <DawaAdresseSoeg onValgt={handleDawaValgt} placeholder="Begynd at skrive adresse…" />
             </div>
 
-            {/* BBR-status banner */}
-            {bbrLoading && (
-              <div className="bbr-status bbr-henter">Henter BBR-data…</div>
+            {/* Status-bannere */}
+            {(bbrLoading || emLoading) && (
+              <div className="bbr-status bbr-henter">Henter BBR{emLoading ? ' og energimærke' : ''}…</div>
             )}
-            {!bbrLoading && bbrStatus === 'ok' && (
-              <div className="bbr-status bbr-ok">✓ BBR-data hentet automatisk — rediger felterne nedenfor hvis nødvendigt</div>
+            {!bbrLoading && !emLoading && bbrStatus === 'ok' && (
+              <div className="bbr-status bbr-ok">
+                ✓ BBR hentet automatisk
+                {emStatus === 'ok' && ejEnergimaerke && (
+                  <span> · Energimærke <span className={`em-badge em-${ejEnergimaerke.charAt(0).toLowerCase()}`}>{ejEnergimaerke}</span>{ejEnergimaerkeGyldigt && ` (gyldigt til ${new Date(ejEnergimaerkeGyldigt).toLocaleDateString('da-DK')})`}</span>
+                )}
+                {emStatus === 'tom' && <span> · Intet energimærke fundet</span>}
+              </div>
             )}
-            {!bbrLoading && bbrStatus === 'tom' && (
-              <div className="bbr-status bbr-advarsel">BBR: ingen bygning fundet på denne adresse — udfyld manuelt</div>
+            {!bbrLoading && !emLoading && bbrStatus === 'tom' && (
+              <div className="bbr-status bbr-advarsel">BBR: ingen bygning fundet — udfyld manuelt</div>
             )}
-            {!bbrLoading && bbrStatus === 'fejl' && (
-              <div className="bbr-status bbr-advarsel">BBR-opslag er ikke konfigureret endnu — udfyld manuelt</div>
+            {!bbrLoading && !emLoading && bbrStatus === 'fejl' && (
+              <div className="bbr-status bbr-advarsel">BBR-opslag ikke konfigureret — udfyld manuelt</div>
             )}
 
             {dawaValgt && (
@@ -283,6 +319,7 @@ export default function KunderDetaljePage({ kunde, onTilbage, onSelectEjendom }:
                     {ej.areal_m2 && <span className="ejendom-chip">{ej.areal_m2.toLocaleString('da-DK')} m²</span>}
                     {ej.opfoerelsesaar && <span className="ejendom-chip">{ej.opfoerelsesaar}</span>}
                     {ej.antal_enheder && <span className="ejendom-chip">{ej.antal_enheder} enh.</span>}
+                    {ej.energimaerke && <span className={`ejendom-chip em-badge em-${ej.energimaerke.charAt(0).toLowerCase()}`}>{ej.energimaerke}</span>}
                   </div>
                 </div>
                 {ej.adresse && ej.adresse !== ej.navn && (

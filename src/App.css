@@ -790,6 +790,23 @@ button:disabled {
   white-space: nowrap;
 }
 
+/* Energimærke-badges A–G */
+.em-badge {
+  font-weight: 700;
+  color: white;
+  padding: 0.1rem 0.55rem;
+  border-radius: 12px;
+  font-size: 0.75rem;
+  white-space: nowrap;
+}
+.em-a { background: #1a5e35; }
+.em-b { background: #4a7a63; }
+.em-c { background: #7db840; }
+.em-d { background: #c8b400; color: #333; }
+.em-e { background: #c4821a; }
+.em-f { background: #c45a1a; }
+.em-g { background: #b3372c; }
+
 /* ---------- Shared form label ---------- */
 
 .brand-valg select {

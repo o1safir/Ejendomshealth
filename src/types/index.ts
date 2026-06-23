@@ -30,6 +30,8 @@ export interface Ejendom {
   antal_enheder: number | null
   anvendelse: string | null
   noter: string | null
+  energimaerke: string | null
+  energimaerke_gyldigt_til: string | null
   intern_indkoeb_findes: boolean
   created_at: string
   updated_at: string
