@@ -78,57 +78,84 @@ def health():
 @app.route("/bbr-opslag", methods=["GET"])
 def bbr_opslag():
     """
-    Slår en adresse op i Datafordeleren BBR og returnerer bygningsdata.
-    Kræver BBR_USERNAME og BBR_PASSWORD sat som miljøvariabler på Render.
-    Returnerer tomt objekt (ikke fejl) hvis credentials mangler — feature deaktiveres stille.
+    Slår en adresse op i BBR. Prøver to strategier:
+    1. bygning via adgangsadresse-ID  → samlede bygningsdata
+    2. enhed via specifik adresse-ID  → boligareal for ejerlejligheder
+    Returnerer tomt objekt stille hvis credentials mangler.
     """
     adgangsadresse_id = request.args.get("id", "").strip()
-    if not adgangsadresse_id:
+    adresse_id = request.args.get("adresse_id", "").strip()
+
+    if not adgangsadresse_id and not adresse_id:
         return jsonify({"fejl": "id er påkrævet"}), 400
 
     bbr_user = os.environ.get("BBR_USERNAME")
     bbr_pass = os.environ.get("BBR_PASSWORD")
     if not bbr_user or not bbr_pass:
-        # Credentials ikke sat endnu — returner tomt resultat, ikke fejl
         return jsonify({}), 200
 
-    try:
-        r = http.get(
-            "https://services.datafordeler.dk/BBR/BBRPublic/1/rest/bygning",
-            params={
-                "username": bbr_user,
-                "password": bbr_pass,
-                "husnummer": adgangsadresse_id,
-                "format": "json",
-            },
-            timeout=8,
-        )
-        if not r.ok:
-            app.logger.warning(f"BBR svarede {r.status_code}")
-            return jsonify({}), 200
+    auth = {"username": bbr_user, "password": bbr_pass, "format": "json"}
 
-        bygninger: list[dict] = r.json()
-    except Exception as e:
-        app.logger.warning(f"BBR-opslag fejlede: {e}")
-        return jsonify({}), 200
+    # --- Strategi 1: bygning via adgangsadresse ---
+    bygning_data = None
+    if adgangsadresse_id:
+        try:
+            r = http.get(
+                "https://services.datafordeler.dk/BBR/BBRPublic/1/rest/bygning",
+                params={**auth, "husnummer": adgangsadresse_id},
+                timeout=8,
+            )
+            if r.ok:
+                bygninger = r.json()
+                if bygninger:
+                    b = max(bygninger, key=lambda x: x.get("byg_samletBygningsareal") or 0)
+                    bolig = b.get("byg_antal_boligenheder") or 0
+                    erhverv = b.get("byg_antal_erhvervsenheder") or 0
+                    bygning_data = {
+                        "areal_m2": b.get("byg_samletBygningsareal"),
+                        "opfoerelsesaar": b.get("byg_opfoerelsesaar"),
+                        "antal_enheder": (bolig + erhverv) or None,
+                        "bbr_nr": str(b["BFEnummer"]) if b.get("BFEnummer") else None,
+                        "matrikel_nr": b.get("matrikelnr"),
+                    }
+            else:
+                app.logger.warning(f"BBR bygning svarede {r.status_code}")
+        except Exception as e:
+            app.logger.warning(f"BBR bygning-opslag fejlede: {e}")
 
-    if not bygninger:
-        return jsonify({}), 200
+    # --- Strategi 2: enhed via specifik adresse-ID (ejerlejlighed) ---
+    enhed_data = None
+    if adresse_id:
+        try:
+            r = http.get(
+                "https://services.datafordeler.dk/BBR/BBRPublic/1/rest/enhed",
+                params={**auth, "adresseIdentificerer": adresse_id},
+                timeout=8,
+            )
+            if r.ok:
+                enheder = r.json()
+                if enheder:
+                    e = enheder[0]
+                    areal = e.get("enh_boligAreal") or e.get("enh_samletAreal")
+                    enhed_data = {
+                        "areal_m2": areal,
+                        "opfoerelsesaar": bygning_data.get("opfoerelsesaar") if bygning_data else None,
+                        "antal_enheder": None,
+                        "bbr_nr": bygning_data.get("bbr_nr") if bygning_data else None,
+                        "matrikel_nr": bygning_data.get("matrikel_nr") if bygning_data else None,
+                    }
+            else:
+                app.logger.warning(f"BBR enhed svarede {r.status_code}")
+        except Exception as e:
+            app.logger.warning(f"BBR enhed-opslag fejlede: {e}")
 
-    # Vælg den bygning med størst samlet areal (primær bygning på adressen)
-    bygning = max(bygninger, key=lambda b: b.get("byg_samletBygningsareal") or 0)
-
-    bolig = bygning.get("byg_antal_boligenheder") or 0
-    erhverv = bygning.get("byg_antal_erhvervsenheder") or 0
-    antal = bolig + erhverv
-
-    return jsonify({
-        "areal_m2": bygning.get("byg_samletBygningsareal"),
-        "opfoerelsesaar": bygning.get("byg_opfoerelsesaar"),
-        "antal_enheder": antal if antal > 0 else None,
-        "bbr_nr": str(bygning.get("BFEnummer")) if bygning.get("BFEnummer") else None,
-        "matrikel_nr": bygning.get("matrikelnr"),
-    })
+    # Brug enhed-areal hvis tilgængeligt (mere præcist for ejerlejligheder),
+    # ellers fald tilbage til bygningsdata
+    if enhed_data and enhed_data.get("areal_m2"):
+        return jsonify(enhed_data)
+    if bygning_data and (bygning_data.get("areal_m2") or bygning_data.get("opfoerelsesaar")):
+        return jsonify(bygning_data)
+    return jsonify({})
 
 
 @app.route("/generer-rapport", methods=["POST"])

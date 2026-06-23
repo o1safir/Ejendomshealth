@@ -20,7 +20,8 @@ export interface ValgtAdresse {
   husnr: string
   postnr: string
   postnrnavn: string
-  adgangsadresseid: string
+  adresse_id: string        // specifik lejlighedsadresse-ID (bruges til BBR enhed-opslag)
+  adgangsadresseid: string  // bygningens adgangspunkt-ID (bruges til BBR bygning-opslag)
 }
 
 interface Props {
@@ -69,6 +70,7 @@ export default function DawaAdresseSoeg({ onValgt, initialVaerdi = '', placehold
       husnr: f.adresse.husnr,
       postnr: f.adresse.postnr,
       postnrnavn: f.adresse.postnrnavn,
+      adresse_id: f.adresse.id,
       adgangsadresseid: f.adresse.adgangsadresseid,
     })
   }

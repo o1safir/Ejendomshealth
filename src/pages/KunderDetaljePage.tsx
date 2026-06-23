@@ -70,7 +70,9 @@ export default function KunderDetaljePage({ kunde, onTilbage, onSelectEjendom }:
 
     setBbrLoading(true)
     try {
-      const res = await fetch(`${rapportUrl}/bbr-opslag?id=${encodeURIComponent(a.adgangsadresseid)}`)
+      const res = await fetch(
+        `${rapportUrl}/bbr-opslag?id=${encodeURIComponent(a.adgangsadresseid)}&adresse_id=${encodeURIComponent(a.adresse_id)}`
+      )
       if (!res.ok) { setBbrStatus('fejl'); return }
       const data: BBRData = await res.json()
 
