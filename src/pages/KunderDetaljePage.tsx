@@ -39,8 +39,6 @@ export default function KunderDetaljePage({ kunde, onTilbage, onSelectEjendom }:
   const [ejAntalEnheder, setEjAntalEnheder] = useState('')
   const [ejBbrNr, setEjBbrNr] = useState('')
   const [ejMatrikelNr, setEjMatrikelNr] = useState('')
-  const [ejVejnavn, setEjVejnavn] = useState('')
-  const [ejHusnr, setEjHusnr] = useState('')
   const [ejEnergimaerke, setEjEnergimaerke] = useState('')
   const [ejEnergimaerkeGyldigt, setEjEnergimaerkeGyldigt] = useState('')
   const [dawaValgt, setDawaValgt] = useState(false)
@@ -66,8 +64,6 @@ export default function KunderDetaljePage({ kunde, onTilbage, onSelectEjendom }:
   async function handleDawaValgt(a: ValgtAdresse) {
     setEjAdresse(a.fuld_tekst)
     setEjPostnr(a.postnr)
-    setEjVejnavn(a.vejnavn)
-    setEjHusnr(a.husnr)
     if (!ejNavn) setEjNavn(a.fuld_tekst)
     setDawaValgt(true)
     setBbrStatus('idle')
@@ -121,7 +117,6 @@ export default function KunderDetaljePage({ kunde, onTilbage, onSelectEjendom }:
 
   function nulstilEjendomForm() {
     setEjNavn(''); setEjAdresse(''); setEjPostnr('')
-    setEjVejnavn(''); setEjHusnr('')
     setEjAreal(''); setEjOpfoerelsesaar(''); setEjAntalEnheder('')
     setEjBbrNr(''); setEjMatrikelNr('')
     setEjEnergimaerke(''); setEjEnergimaerkeGyldigt('')
