@@ -820,6 +820,71 @@ button:disabled {
 .em-f { background: #c45a1a; }
 .em-g { background: #b3372c; }
 
+.em-stor {
+  font-size: 2rem;
+  padding: 0.35rem 1rem;
+  border-radius: 10px;
+  display: inline-block;
+  line-height: 1;
+}
+
+/* Ejendomsdetalje – BBR metadata-række */
+.ejendom-meta-raekke {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1.2rem;
+  padding: 0.75rem 0;
+  border-bottom: 1px solid var(--kant);
+  margin-bottom: 1.25rem;
+  font-size: 0.875rem;
+  color: var(--tekst-sekundaer);
+}
+
+.ejendom-meta-raekke strong {
+  color: var(--tekst-moerk);
+}
+
+/* Energimærke-sektion */
+.energimaerke-sektion h4 {
+  font-size: 0.9rem;
+  margin: 1rem 0 0.5rem;
+  color: var(--tekst-sekundaer);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.energimaerke-hoved {
+  display: flex;
+  align-items: flex-start;
+  gap: 1.5rem;
+  margin-bottom: 0.75rem;
+}
+
+.energimaerke-kpi-raekke {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1.25rem;
+}
+
+.em-kpi {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+}
+
+.em-kpi-label {
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--tekst-sekundaer);
+}
+
+.em-kpi-vaerdi {
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: var(--tekst-moerk);
+}
+
 /* ---------- Shared form label ---------- */
 
 .brand-valg select {

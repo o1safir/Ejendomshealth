@@ -181,6 +181,83 @@ export default function EjendomsDetaljePage({ ejendom, onTilbage }: Props) {
         </div>
       )}
 
+      {/* BBR-metadata */}
+      {(ejendom.areal_m2 || ejendom.opfoerelsesaar || ejendom.antal_enheder || ejendom.bbr_nr || ejendom.matrikel_nr) && (
+        <div className="ejendom-meta-raekke">
+          {ejendom.areal_m2 && <span><strong>{ejendom.areal_m2.toLocaleString('da-DK')}</strong> m²</span>}
+          {ejendom.opfoerelsesaar && <span>Opført <strong>{ejendom.opfoerelsesaar}</strong></span>}
+          {ejendom.antal_enheder && <span><strong>{ejendom.antal_enheder}</strong> enheder</span>}
+          {ejendom.bbr_nr && <span>BBR <strong>{ejendom.bbr_nr}</strong></span>}
+          {ejendom.matrikel_nr && <span>Matr. <strong>{ejendom.matrikel_nr}</strong></span>}
+        </div>
+      )}
+
+      {/* Energimærke */}
+      {ejendom.energimaerke && (
+        <section className="modul-sektion energimaerke-sektion">
+          <h3>Energimærke</h3>
+          <div className="energimaerke-hoved">
+            <span className={`em-badge em-stor em-${ejendom.energimaerke.charAt(0).toLowerCase()}`}>
+              {ejendom.energimaerke}
+            </span>
+            <div className="energimaerke-kpi-raekke">
+              {ejendom.energimaerke_gyldigt_til && (
+                <div className="em-kpi">
+                  <span className="em-kpi-label">Gyldigt til</span>
+                  <span className="em-kpi-vaerdi">{new Date(ejendom.energimaerke_gyldigt_til).toLocaleDateString('da-DK')}</span>
+                </div>
+              )}
+              {ejendom.energibehov_kwh_m2 && (
+                <div className="em-kpi">
+                  <span className="em-kpi-label">Energibehov</span>
+                  <span className="em-kpi-vaerdi">{ejendom.energibehov_kwh_m2.toLocaleString('da-DK')} kWh/m²/år</span>
+                </div>
+              )}
+              {ejendom.co2_udledning_kg && (
+                <div className="em-kpi">
+                  <span className="em-kpi-label">CO₂-udledning</span>
+                  <span className="em-kpi-vaerdi">{ejendom.co2_udledning_kg.toLocaleString('da-DK')} kg/år</span>
+                </div>
+              )}
+              {ejendom.opvarmningsform && (
+                <div className="em-kpi">
+                  <span className="em-kpi-label">Opvarmning</span>
+                  <span className="em-kpi-vaerdi">{ejendom.opvarmningsform}</span>
+                </div>
+              )}
+            </div>
+          </div>
+
+          {ejendom.besparelsesforslag && ejendom.besparelsesforslag.length > 0 && (
+            <>
+              <h4>Forbedringspotentiale</h4>
+              <table className="aftale-tabel">
+                <thead>
+                  <tr>
+                    <th>Forslag</th>
+                    <th>Investering</th>
+                    <th>Besparelse/år</th>
+                    <th>Tilbagebetaling</th>
+                    <th>CO₂-besparelse</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {ejendom.besparelsesforslag.map((f, i) => (
+                    <tr key={i}>
+                      <td>{f.titel ?? '–'}</td>
+                      <td>{f.investering_kr ? `${Number(f.investering_kr).toLocaleString('da-DK')} kr.` : '–'}</td>
+                      <td>{f.besparelse_kr ? `${Number(f.besparelse_kr).toLocaleString('da-DK')} kr.` : '–'}</td>
+                      <td>{f.tilbagebetalingstid_aar ? `${f.tilbagebetalingstid_aar} år` : '–'}</td>
+                      <td>{f.co2_besparelse_kg ? `${Number(f.co2_besparelse_kg).toLocaleString('da-DK')} kg` : '–'}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </>
+          )}
+        </section>
+      )}
+
       <div className="ejendom-indstillinger">
         <label className="toggle-label">
           <span>Intern indkøbsfunktion</span>
