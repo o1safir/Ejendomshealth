@@ -14,6 +14,7 @@ from __future__ import annotations
 import os
 from datetime import datetime, timezone
 from io import BytesIO
+from xml.etree import ElementTree as ET
 
 import requests as http
 from flask import Flask, jsonify, request, send_file
@@ -281,119 +282,126 @@ def generer_rapport():
     )
 
 
+_DIADEM_NS = "http://ens.dk/diademservice"
+_DIADEM_URL = "https://emoweb.dk/emodata/EMOData.svc/SOAP"
+
+
+def _diadem_soap(method: str, body_inner: str) -> ET.Element | None:
+    """Sender et SOAP-kald til DIADEM og returnerer Body-indholdet som XML-element."""
+    envelope = (
+        '<?xml version="1.0" encoding="utf-8"?>'
+        '<s:Envelope xmlns:s="http://schemas.xmlsoap.org/soap/envelope/">'
+        "<s:Body>"
+        f'<{method} xmlns="{_DIADEM_NS}">{body_inner}</{method}>'
+        "</s:Body>"
+        "</s:Envelope>"
+    )
+    action = f'"{_DIADEM_NS}/IDIADEMService/{method}"'
+    try:
+        r = http.post(
+            _DIADEM_URL,
+            data=envelope.encode("utf-8"),
+            headers={"Content-Type": "text/xml; charset=utf-8", "SOAPAction": action},
+            timeout=10,
+        )
+        app.logger.info(f"DIADEM {method} svar {r.status_code}: {r.text[:1500]}")
+        if r.ok:
+            root = ET.fromstring(r.content)
+            # Returner første element inden i Body
+            body = root.find("{http://schemas.xmlsoap.org/soap/envelope/}Body")
+            return body[0] if body is not None and len(body) else None
+    except Exception as exc:
+        app.logger.warning(f"DIADEM {method} fejlede: {exc}")
+    return None
+
+
+def _xml_text(el: ET.Element | None, *tags: str) -> str | None:
+    """Finder første match på et af de angivne tag-navne (med eller uden namespace)."""
+    if el is None:
+        return None
+    for tag in tags:
+        found = el.find(f".//{{{_DIADEM_NS}}}{tag}")
+        if found is None:
+            found = el.find(f".//{tag}")
+        if found is not None and found.text:
+            return found.text.strip()
+    return None
+
+
 @app.route("/energimaerke-opslag", methods=["GET"])
 def energimaerke_opslag():
     """
-    Henter energimærke fra Energistyrelsens EMO-system.
-    Kræver ingen credentials — data er offentligt tilgængeligt.
+    Henter energimærke fra Energistyrelsens DIADEM-service via SOAP.
+    Bruger DAWA-adressens UUID (uid) til SearchEnergyLabelUID.
+    Fallback: bygningens adgangsadresse-ID (adgangsadresseid).
     """
-    vejnavn = request.args.get("vejnavn", "").strip()
-    husnr = request.args.get("husnr", "").strip()
-    postnr = request.args.get("postnr", "").strip()
+    uid = request.args.get("uid", "").strip()
+    adgangsadresseid = request.args.get("adgangsadresseid", "").strip()
 
-    if not vejnavn or not postnr:
+    if not uid and not adgangsadresseid:
         return jsonify({}), 200
 
-    try:
-        r = http.get(
-            "https://emoweb.dk/EMOData/EMOData.svc/json/FindEjendom",
-            params={"vejnavn": vejnavn, "husnr": husnr, "postnr": postnr, "bynavn": ""},
-            timeout=8,
-            headers={"Accept": "application/json"},
-        )
-        if not r.ok:
-            app.logger.warning(f"Energimærke svarede {r.status_code}: {r.text[:200]}")
-            return jsonify({}), 200
-
-        app.logger.info(f"Energimærke rå svar: {r.text[:1200]}")
-        data = r.json()
-
-        # Normaliser svaret — strukturen kan variere
-        result = data.get("FindEjendomResult") or data
-        if isinstance(result, dict):
-            ejdomme = result.get("EjendomList", {})
-            if isinstance(ejdomme, dict):
-                ejdomme = ejdomme.get("Ejendom", [])
-            if isinstance(ejdomme, dict):
-                ejdomme = [ejdomme]
-        elif isinstance(result, list):
-            ejdomme = result
-        else:
-            ejdomme = []
-
-        if not ejdomme:
-            return jsonify({}), 200
-
-        ej = ejdomme[0]
-        maerker = ej.get("Energimaerker", {})
-        if isinstance(maerker, dict):
-            maerker = maerker.get("Energimaerke", [])
-        if isinstance(maerker, dict):
-            maerker = [maerker]
-
-        if not maerker:
-            return jsonify({}), 200
-
-        # Seneste gyldige mærke øverst
-        maerke = sorted(maerker, key=lambda x: x.get("GyldigFra") or "", reverse=True)[0]
-        gyldigt_til = maerke.get("GyldigTil") or ""
-
-        # Energimetrics — forsøg flere mulige feltnavne fra API'et
-        energibehov = (
-            maerke.get("EnergibehovKWhm2")
-            or maerke.get("EnergibehovKWhPrM2")
-            or maerke.get("EnergiberegningKWhPrM2")
-            or maerke.get("Energibehov")
-        )
-        co2 = (
-            maerke.get("CO2UdledningKg")
-            or maerke.get("CO2Udledning")
-            or maerke.get("Co2UdledningKg")
-        )
-        opvarmning = (
-            maerke.get("VarmeinstallationTekst")
-            or maerke.get("Opvarmning")
-            or maerke.get("VarmeinstallationKode")
+    # Forsøg 1: specifik lejlighedsadresse-UID
+    result_el = None
+    if uid:
+        result_el = _diadem_soap(
+            "SearchEnergyLabelUIDWithoutModifiers",
+            f"<UID>{uid}</UID>",
         )
 
-        # Besparelsesforslag
-        raa_besparelser = maerke.get("Besparelser") or maerke.get("BesparelseList") or {}
-        if isinstance(raa_besparelser, dict):
-            raa_besparelser = (
-                raa_besparelser.get("Besparelse")
-                or raa_besparelser.get("BesparelseForslag")
-                or []
-            )
-        if isinstance(raa_besparelser, dict):
-            raa_besparelser = [raa_besparelser]
+    # Forsøg 2: bygningens adgangsadresse-UID
+    if result_el is None and adgangsadresseid:
+        result_el = _diadem_soap(
+            "SearchEnergyLabelUIDWithoutModifiers",
+            f"<UID>{adgangsadresseid}</UID>",
+        )
 
-        forslag = []
-        for b in (raa_besparelser or []):
+    if result_el is None:
+        return jsonify({}), 200
+
+    # Log det rå XML for debugging
+    app.logger.info(f"DIADEM parsed XML: {ET.tostring(result_el, encoding='unicode')[:2000]}")
+
+    label = _xml_text(result_el, "EnergyLabelClassification", "Klassifikation", "Label", "EnergiLabel")
+    gyldigt_til = _xml_text(result_el, "ValidTo", "GyldigTil", "ExpiryDate")
+    energibehov = _xml_text(result_el, "EnergyConsumptionPerM2", "EnergibehovKWhm2", "Energibehov")
+    co2 = _xml_text(result_el, "CO2EmissionKg", "CO2UdledningKg", "CO2")
+    opvarmning = _xml_text(result_el, "HeatingInstallation", "Opvarmningsform", "VarmeinstallationTekst")
+
+    if not label:
+        return jsonify({}), 200
+
+    # Besparelsesforslag
+    forslag = []
+    for b in result_el.iter(f"{{{_DIADEM_NS}}}ImprovementSuggestion") or []:
+        forslag.append({
+            "titel": _xml_text(b, "Title", "Titel", "Description"),
+            "investering_kr": _xml_text(b, "InvestmentCost", "Investering", "InvesteringKr"),
+            "besparelse_kwh": _xml_text(b, "AnnualEnergySaving", "BesparelseKWh"),
+            "besparelse_kr": _xml_text(b, "AnnualSavingDKK", "BesparelseKr"),
+            "tilbagebetalingstid_aar": _xml_text(b, "Profitability", "Tilbagebetalingstid"),
+            "co2_besparelse_kg": _xml_text(b, "CO2Saving", "CO2BesparelseKg"),
+        })
+    # Fallback tag-varianter
+    if not forslag:
+        for b in result_el.iter("ImprovementSuggestion"):
             forslag.append({
-                "titel": b.get("Titel") or b.get("Beskrivelse") or b.get("ForslagTekst"),
-                "investering_kr": b.get("InvesteringKr") or b.get("Investering") or b.get("InvesteringMin"),
-                "besparelse_kwh": b.get("BesparelseKWh") or b.get("BesparelseKWhPrAar") or b.get("EnergiBesparelseKWh"),
-                "besparelse_kr": b.get("BesparelseKr") or b.get("BesparelseKrPrAar"),
-                "tilbagebetalingstid_aar": b.get("Rentabilitet") or b.get("TilbagebetalingstidAar") or b.get("Tilbagebetalingstid"),
-                "co2_besparelse_kg": b.get("CO2BesparelseKg") or b.get("CO2Besparelse"),
+                "titel": _xml_text(b, "Title", "Titel", "Description"),
+                "investering_kr": _xml_text(b, "InvestmentCost", "Investering"),
+                "besparelse_kwh": _xml_text(b, "AnnualEnergySaving", "BesparelseKWh"),
+                "besparelse_kr": _xml_text(b, "AnnualSavingDKK", "BesparelseKr"),
+                "tilbagebetalingstid_aar": _xml_text(b, "Profitability", "Tilbagebetalingstid"),
+                "co2_besparelse_kg": _xml_text(b, "CO2Saving", "CO2BesparelseKg"),
             })
 
-        app.logger.info(f"Energimærke parsed: label={maerke.get('EnergiLabel')}, "
-                        f"energibehov={energibehov}, co2={co2}, "
-                        f"opvarmning={opvarmning}, forslag={len(forslag)}")
-
-        return jsonify({
-            "label": maerke.get("EnergiLabel") or maerke.get("Energimaerke"),
-            "gyldigt_til": gyldigt_til[:10] if gyldigt_til else None,
-            "energibehov_kwh_m2": float(energibehov) if energibehov is not None else None,
-            "co2_udledning_kg": float(co2) if co2 is not None else None,
-            "opvarmningsform": str(opvarmning) if opvarmning else None,
-            "besparelsesforslag": forslag if forslag else None,
-        })
-
-    except Exception as e:
-        app.logger.warning(f"Energimærke-opslag fejlede: {e}")
-        return jsonify({}), 200
+    return jsonify({
+        "label": label,
+        "gyldigt_til": gyldigt_til[:10] if gyldigt_til else None,
+        "energibehov_kwh_m2": float(energibehov) if energibehov else None,
+        "co2_udledning_kg": float(co2) if co2 else None,
+        "opvarmningsform": opvarmning,
+        "besparelsesforslag": forslag if forslag else None,
+    })
 
 
 if __name__ == "__main__":

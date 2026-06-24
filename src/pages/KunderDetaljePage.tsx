@@ -90,7 +90,7 @@ export default function KunderDetaljePage({ kunde, onTilbage, onSelectEjendom, o
 
     const [bbrRes, emRes] = await Promise.allSettled([
       fetch(`${rapportUrl}/bbr-opslag?id=${encodeURIComponent(a.adgangsadresseid)}&adresse_id=${encodeURIComponent(a.adresse_id)}`),
-      fetch(`${rapportUrl}/energimaerke-opslag?vejnavn=${encodeURIComponent(a.vejnavn)}&husnr=${encodeURIComponent(a.husnr)}&postnr=${encodeURIComponent(a.postnr)}`),
+      fetch(`${rapportUrl}/energimaerke-opslag?uid=${encodeURIComponent(a.adresse_id)}&adgangsadresseid=${encodeURIComponent(a.adgangsadresseid)}`),
     ])
 
     // BBR
