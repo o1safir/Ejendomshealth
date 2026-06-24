@@ -343,6 +343,19 @@ button:disabled {
   background: #fdecea;
 }
 
+.header-knapper {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.slet-bekraeft-tekst {
+  font-size: 0.85rem;
+  color: var(--fejl);
+  font-weight: 500;
+}
+
 .aftale-handlinger button:not(.slet-knap) {
   background: transparent;
   color: var(--groen-moerk);

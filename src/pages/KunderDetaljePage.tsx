@@ -7,6 +7,8 @@ interface Props {
   kunde: Kunde
   onTilbage: () => void
   onSelectEjendom: (ejendom: Ejendom) => void
+  onKundeOpdateret: (opdateret: Kunde) => void
+  onKundeSlettet: () => void
 }
 
 interface BBRData {
@@ -17,18 +19,24 @@ interface BBRData {
   matrikel_nr?: string | null
 }
 
-export default function KunderDetaljePage({ kunde, onTilbage, onSelectEjendom }: Props) {
+export default function KunderDetaljePage({ kunde, onTilbage, onSelectEjendom, onKundeOpdateret, onKundeSlettet }: Props) {
   const [ejendomme, setEjendomme] = useState<Ejendom[]>([])
   const [loading, setLoading] = useState(true)
   const [visForm, setVisForm] = useState(false)
   const [fejl, setFejl] = useState<string | null>(null)
+  const [sletBekraeft, setSletBekraeft] = useState(false)
 
   // Rediger kunde
   const [redigerKunde, setRedigerKunde] = useState(false)
   const [editNavn, setEditNavn] = useState(kunde.navn)
+  const [editCvr, setEditCvr] = useState(kunde.cvr ?? '')
   const [editKontaktperson, setEditKontaktperson] = useState(kunde.kontaktperson ?? '')
   const [editEmail, setEditEmail] = useState(kunde.email ?? '')
   const [editTelefon, setEditTelefon] = useState(kunde.telefon ?? '')
+  const [editAdresse, setEditAdresse] = useState(kunde.adresse ?? '')
+  const [editPostnr, setEditPostnr] = useState(kunde.postnr ?? '')
+  const [editBy, setEditBy] = useState(kunde.by ?? '')
+  const [editBranche, setEditBranche] = useState(kunde.branche ?? '')
 
   // Ny ejendom-form
   const [ejNavn, setEjNavn] = useState('')
@@ -168,18 +176,32 @@ export default function KunderDetaljePage({ kunde, onTilbage, onSelectEjendom }:
 
   async function handleGemKunde(e: FormEvent) {
     e.preventDefault()
-    const { error } = await supabase.from('kunder').update({
+    const opdateret = {
+      cvr: editCvr.replace(/\s/g, '') || null,
       navn: editNavn.trim(),
-      kontaktperson: editKontaktperson.trim() || null,
-      email: editEmail.trim() || null,
+      adresse: editAdresse.trim() || null,
+      postnr: editPostnr.trim() || null,
+      by: editBy.trim() || null,
       telefon: editTelefon.trim() || null,
-    }).eq('id', kunde.id)
+      email: editEmail.trim() || null,
+      kontaktperson: editKontaktperson.trim() || null,
+      branche: editBranche.trim() || null,
+    }
+    const { error } = await supabase.from('kunder').update(opdateret).eq('id', kunde.id)
     if (error) { setFejl(error.message); return }
-    kunde.navn = editNavn.trim()
-    kunde.kontaktperson = editKontaktperson.trim() || null
-    kunde.email = editEmail.trim() || null
-    kunde.telefon = editTelefon.trim() || null
+    onKundeOpdateret({ ...kunde, ...opdateret })
     setRedigerKunde(false)
+  }
+
+  async function handleSletKunde() {
+    if (ejendomme.length > 0) {
+      setFejl(`Kunden har ${ejendomme.length} ejendom${ejendomme.length !== 1 ? 'me' : ''} — fjern dem først før kunden kan slettes.`)
+      setSletBekraeft(false)
+      return
+    }
+    const { error } = await supabase.from('kunder').delete().eq('id', kunde.id)
+    if (error) { setFejl(error.message); return }
+    onKundeSlettet()
   }
 
   return (
@@ -187,13 +209,51 @@ export default function KunderDetaljePage({ kunde, onTilbage, onSelectEjendom }:
       <button className="tilbage-knap" onClick={onTilbage}>← Tilbage til kunder</button>
 
       {redigerKunde ? (
-        <form className="inline-form kunde-rediger-form" onSubmit={handleGemKunde}>
-          <input value={editNavn} onChange={(e) => setEditNavn(e.target.value)} placeholder="Firmanavn" required />
-          <input value={editKontaktperson} onChange={(e) => setEditKontaktperson(e.target.value)} placeholder="Kontaktperson" />
-          <input type="email" value={editEmail} onChange={(e) => setEditEmail(e.target.value)} placeholder="E-mail" />
-          <input value={editTelefon} onChange={(e) => setEditTelefon(e.target.value)} placeholder="Telefon" />
-          <button type="submit">Gem</button>
-          <button type="button" onClick={() => setRedigerKunde(false)}>Annuller</button>
+        <form className="kunde-form" onSubmit={handleGemKunde}>
+          <div className="form-grid-2">
+            <div>
+              <label className="form-label">Firmanavn *</label>
+              <input value={editNavn} onChange={(e) => setEditNavn(e.target.value)} required placeholder="Firma A/S" />
+            </div>
+            <div>
+              <label className="form-label">CVR-nummer</label>
+              <input value={editCvr} onChange={(e) => setEditCvr(e.target.value)} placeholder="12345678" maxLength={10} />
+            </div>
+            <div>
+              <label className="form-label">Kontaktperson</label>
+              <input value={editKontaktperson} onChange={(e) => setEditKontaktperson(e.target.value)} placeholder="Anders Jensen" />
+            </div>
+            <div>
+              <label className="form-label">E-mail</label>
+              <input type="email" value={editEmail} onChange={(e) => setEditEmail(e.target.value)} placeholder="kontakt@firma.dk" />
+            </div>
+            <div>
+              <label className="form-label">Telefon</label>
+              <input value={editTelefon} onChange={(e) => setEditTelefon(e.target.value)} placeholder="12 34 56 78" />
+            </div>
+            <div>
+              <label className="form-label">Branche</label>
+              <input value={editBranche} onChange={(e) => setEditBranche(e.target.value)} placeholder="A/S, K/S, …" />
+            </div>
+            <div>
+              <label className="form-label">Adresse</label>
+              <input value={editAdresse} onChange={(e) => setEditAdresse(e.target.value)} placeholder="Vesterbrogade 10" />
+            </div>
+            <div className="form-grid-2-inner">
+              <div>
+                <label className="form-label">Postnr.</label>
+                <input value={editPostnr} onChange={(e) => setEditPostnr(e.target.value)} placeholder="1234" />
+              </div>
+              <div>
+                <label className="form-label">By</label>
+                <input value={editBy} onChange={(e) => setEditBy(e.target.value)} placeholder="København V" />
+              </div>
+            </div>
+          </div>
+          <div className="form-knapper">
+            <button type="submit">Gem ændringer</button>
+            <button type="button" className="slet-knap" onClick={() => setRedigerKunde(false)}>Annuller</button>
+          </div>
         </form>
       ) : (
         <div className="page-header">
@@ -209,7 +269,18 @@ export default function KunderDetaljePage({ kunde, onTilbage, onSelectEjendom }:
               )}
             </div>
           </div>
-          <button className="rediger-knap" onClick={() => setRedigerKunde(true)}>Rediger</button>
+          <div className="header-knapper">
+            <button className="rediger-knap" onClick={() => setRedigerKunde(true)}>Rediger</button>
+            {sletBekraeft ? (
+              <>
+                <span className="slet-bekraeft-tekst">Er du sikker?</span>
+                <button className="slet-knap" onClick={handleSletKunde}>Ja, slet</button>
+                <button onClick={() => setSletBekraeft(false)}>Annuller</button>
+              </>
+            ) : (
+              <button className="slet-knap" onClick={() => setSletBekraeft(true)}>Slet kunde</button>
+            )}
+          </div>
         </div>
       )}
 

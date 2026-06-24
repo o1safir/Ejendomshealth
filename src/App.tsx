@@ -52,6 +52,8 @@ function AppIndhold() {
             kunde={view.kunde}
             onTilbage={() => setView({ side: 'kunder' })}
             onSelectEjendom={(ej) => setView({ side: 'ejendom', ejendom: ej, fraKunde: view.kunde })}
+            onKundeOpdateret={(opdateret) => setView({ side: 'kunde', kunde: opdateret })}
+            onKundeSlettet={() => setView({ side: 'kunder' })}
           />
         )}
         {view.side === 'ejendom' && (
