@@ -1,7 +1,7 @@
 import { useEffect, useState, type FormEvent } from 'react'
 import { supabase } from '../lib/supabase'
 import DawaAdresseSoeg, { type ValgtAdresse } from '../components/DawaAdresseSoeg'
-import type { Ejendom, Kunde } from '../types'
+import type { BesparelseForslag, Ejendom, Kunde } from '../types'
 
 interface Props {
   kunde: Kunde
@@ -41,6 +41,10 @@ export default function KunderDetaljePage({ kunde, onTilbage, onSelectEjendom }:
   const [ejMatrikelNr, setEjMatrikelNr] = useState('')
   const [ejEnergimaerke, setEjEnergimaerke] = useState('')
   const [ejEnergimaerkeGyldigt, setEjEnergimaerkeGyldigt] = useState('')
+  const [ejEnergibehovKwhM2, setEjEnergibehovKwhM2] = useState<number | null>(null)
+  const [ejCo2UdledningKg, setEjCo2UdledningKg] = useState<number | null>(null)
+  const [ejOpvarmningsform, setEjOpvarmningsform] = useState('')
+  const [ejBesparelsesforslag, setEjBesparelsesforslag] = useState<BesparelseForslag[] | null>(null)
   const [dawaValgt, setDawaValgt] = useState(false)
   const [bbrLoading, setBbrLoading] = useState(false)
   const [bbrStatus, setBbrStatus] = useState<'idle' | 'ok' | 'tom' | 'fejl'>('idle')
@@ -102,10 +106,21 @@ export default function KunderDetaljePage({ kunde, onTilbage, onSelectEjendom }:
     // Energimærke
     setEmLoading(false)
     if (emRes.status === 'fulfilled' && emRes.value.ok) {
-      const emData: { label?: string; gyldigt_til?: string } = await emRes.value.json()
+      const emData: {
+        label?: string
+        gyldigt_til?: string
+        energibehov_kwh_m2?: number
+        co2_udledning_kg?: number
+        opvarmningsform?: string
+        besparelsesforslag?: BesparelseForslag[]
+      } = await emRes.value.json()
       if (emData.label) {
         setEjEnergimaerke(emData.label)
         setEjEnergimaerkeGyldigt(emData.gyldigt_til ?? '')
+        setEjEnergibehovKwhM2(emData.energibehov_kwh_m2 ?? null)
+        setEjCo2UdledningKg(emData.co2_udledning_kg ?? null)
+        setEjOpvarmningsform(emData.opvarmningsform ?? '')
+        setEjBesparelsesforslag(emData.besparelsesforslag ?? null)
         setEmStatus('ok')
       } else {
         setEmStatus('tom')
@@ -120,6 +135,8 @@ export default function KunderDetaljePage({ kunde, onTilbage, onSelectEjendom }:
     setEjAreal(''); setEjOpfoerelsesaar(''); setEjAntalEnheder('')
     setEjBbrNr(''); setEjMatrikelNr('')
     setEjEnergimaerke(''); setEjEnergimaerkeGyldigt('')
+    setEjEnergibehovKwhM2(null); setEjCo2UdledningKg(null)
+    setEjOpvarmningsform(''); setEjBesparelsesforslag(null)
     setDawaValgt(false); setBbrStatus('idle'); setEmStatus('idle')
   }
 
@@ -137,6 +154,10 @@ export default function KunderDetaljePage({ kunde, onTilbage, onSelectEjendom }:
       matrikel_nr: ejMatrikelNr.trim() || null,
       energimaerke: ejEnergimaerke.trim() || null,
       energimaerke_gyldigt_til: ejEnergimaerkeGyldigt || null,
+      energibehov_kwh_m2: ejEnergibehovKwhM2,
+      co2_udledning_kg: ejCo2UdledningKg,
+      opvarmningsform: ejOpvarmningsform.trim() || null,
+      besparelsesforslag: ejBesparelsesforslag,
       intern_indkoeb_findes: false,
     })
     if (error) { setFejl(error.message); return }

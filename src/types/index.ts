@@ -15,6 +15,15 @@ export interface Kunde {
   created_at: string
 }
 
+export interface BesparelseForslag {
+  titel: string | null
+  investering_kr: number | null
+  besparelse_kwh: number | null
+  besparelse_kr: number | null
+  tilbagebetalingstid_aar: number | null
+  co2_besparelse_kg: number | null
+}
+
 export interface Ejendom {
   id: string
   kunde_id: string | null
@@ -32,6 +41,10 @@ export interface Ejendom {
   noter: string | null
   energimaerke: string | null
   energimaerke_gyldigt_til: string | null
+  energibehov_kwh_m2: number | null
+  co2_udledning_kg: number | null
+  opvarmningsform: string | null
+  besparelsesforslag: BesparelseForslag[] | null
   intern_indkoeb_findes: boolean
   created_at: string
   updated_at: string

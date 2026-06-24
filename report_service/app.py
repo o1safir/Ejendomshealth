@@ -305,7 +305,7 @@ def energimaerke_opslag():
             app.logger.warning(f"Energimærke svarede {r.status_code}: {r.text[:200]}")
             return jsonify({}), 200
 
-        app.logger.info(f"Energimærke rå svar: {r.text[:600]}")
+        app.logger.info(f"Energimærke rå svar: {r.text[:1200]}")
         data = r.json()
 
         # Normaliser svaret — strukturen kan variere
@@ -338,9 +338,57 @@ def energimaerke_opslag():
         maerke = sorted(maerker, key=lambda x: x.get("GyldigFra") or "", reverse=True)[0]
         gyldigt_til = maerke.get("GyldigTil") or ""
 
+        # Energimetrics — forsøg flere mulige feltnavne fra API'et
+        energibehov = (
+            maerke.get("EnergibehovKWhm2")
+            or maerke.get("EnergibehovKWhPrM2")
+            or maerke.get("EnergiberegningKWhPrM2")
+            or maerke.get("Energibehov")
+        )
+        co2 = (
+            maerke.get("CO2UdledningKg")
+            or maerke.get("CO2Udledning")
+            or maerke.get("Co2UdledningKg")
+        )
+        opvarmning = (
+            maerke.get("VarmeinstallationTekst")
+            or maerke.get("Opvarmning")
+            or maerke.get("VarmeinstallationKode")
+        )
+
+        # Besparelsesforslag
+        raa_besparelser = maerke.get("Besparelser") or maerke.get("BesparelseList") or {}
+        if isinstance(raa_besparelser, dict):
+            raa_besparelser = (
+                raa_besparelser.get("Besparelse")
+                or raa_besparelser.get("BesparelseForslag")
+                or []
+            )
+        if isinstance(raa_besparelser, dict):
+            raa_besparelser = [raa_besparelser]
+
+        forslag = []
+        for b in (raa_besparelser or []):
+            forslag.append({
+                "titel": b.get("Titel") or b.get("Beskrivelse") or b.get("ForslagTekst"),
+                "investering_kr": b.get("InvesteringKr") or b.get("Investering") or b.get("InvesteringMin"),
+                "besparelse_kwh": b.get("BesparelseKWh") or b.get("BesparelseKWhPrAar") or b.get("EnergiBesparelseKWh"),
+                "besparelse_kr": b.get("BesparelseKr") or b.get("BesparelseKrPrAar"),
+                "tilbagebetalingstid_aar": b.get("Rentabilitet") or b.get("TilbagebetalingstidAar") or b.get("Tilbagebetalingstid"),
+                "co2_besparelse_kg": b.get("CO2BesparelseKg") or b.get("CO2Besparelse"),
+            })
+
+        app.logger.info(f"Energimærke parsed: label={maerke.get('EnergiLabel')}, "
+                        f"energibehov={energibehov}, co2={co2}, "
+                        f"opvarmning={opvarmning}, forslag={len(forslag)}")
+
         return jsonify({
             "label": maerke.get("EnergiLabel") or maerke.get("Energimaerke"),
             "gyldigt_til": gyldigt_til[:10] if gyldigt_til else None,
+            "energibehov_kwh_m2": float(energibehov) if energibehov is not None else None,
+            "co2_udledning_kg": float(co2) if co2 is not None else None,
+            "opvarmningsform": str(opvarmning) if opvarmning else None,
+            "besparelsesforslag": forslag if forslag else None,
         })
 
     except Exception as e:
