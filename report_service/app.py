@@ -134,9 +134,38 @@ def bbr_opslag():
             )
             if r.ok:
                 enheder = r.json()
+                app.logger.info(f"BBR enhed rå svar: {str(enheder)[:400]}")
                 if enheder:
                     e = enheder[0]
                     areal = e.get("enh_boligAreal") or e.get("enh_samletAreal")
+
+                    # Hvis vi ikke har bygningsdata endnu, prøv via enhedens eget husnummer-felt
+                    if not bygning_data:
+                        enhed_husnummer = e.get("husnummer")
+                        if enhed_husnummer:
+                            try:
+                                r2 = http.get(
+                                    "https://services.datafordeler.dk/BBR/BBRPublic/1/rest/bygning",
+                                    params={**auth, "husnummer": enhed_husnummer},
+                                    timeout=8,
+                                )
+                                if r2.ok:
+                                    bygninger2 = r2.json()
+                                    if bygninger2:
+                                        b2 = max(bygninger2, key=lambda x: x.get("byg_samletBygningsareal") or 0)
+                                        bolig2 = b2.get("byg_antal_boligenheder") or 0
+                                        erhverv2 = b2.get("byg_antal_erhvervsenheder") or 0
+                                        bygning_data = {
+                                            "areal_m2": b2.get("byg_samletBygningsareal"),
+                                            "opfoerelsesaar": b2.get("byg_opfoerelsesaar"),
+                                            "antal_enheder": (bolig2 + erhverv2) or None,
+                                            "bbr_nr": str(b2["BFEnummer"]) if b2.get("BFEnummer") else None,
+                                            "matrikel_nr": b2.get("matrikelnr"),
+                                        }
+                                        app.logger.info(f"BBR bygning via enhed-husnummer: {bygning_data}")
+                            except Exception as e2:
+                                app.logger.warning(f"BBR bygning via enhed-husnummer fejlede: {e2}")
+
                     enhed_data = {
                         "areal_m2": areal,
                         "opfoerelsesaar": bygning_data.get("opfoerelsesaar") if bygning_data else None,
@@ -145,7 +174,7 @@ def bbr_opslag():
                         "matrikel_nr": bygning_data.get("matrikel_nr") if bygning_data else None,
                     }
             else:
-                app.logger.warning(f"BBR enhed svarede {r.status_code}")
+                app.logger.warning(f"BBR enhed svarede {r.status_code}: {r.text[:200]}")
         except Exception as e:
             app.logger.warning(f"BBR enhed-opslag fejlede: {e}")
 

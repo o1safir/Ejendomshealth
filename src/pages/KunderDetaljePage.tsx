@@ -215,19 +215,22 @@ export default function KunderDetaljePage({ kunde, onTilbage, onSelectEjendom }:
               <div className="bbr-status bbr-henter">Henter BBR{emLoading ? ' og energimærke' : ''}…</div>
             )}
             {!bbrLoading && !emLoading && bbrStatus === 'ok' && (
-              <div className="bbr-status bbr-ok">
-                ✓ BBR hentet automatisk
-                {emStatus === 'ok' && ejEnergimaerke && (
-                  <span> · Energimærke <span className={`em-badge em-${ejEnergimaerke.charAt(0).toLowerCase()}`}>{ejEnergimaerke}</span>{ejEnergimaerkeGyldigt && ` (gyldigt til ${new Date(ejEnergimaerkeGyldigt).toLocaleDateString('da-DK')})`}</span>
-                )}
-                {emStatus === 'tom' && <span> · Intet energimærke fundet</span>}
-              </div>
+              <div className="bbr-status bbr-ok">✓ BBR hentet automatisk</div>
             )}
             {!bbrLoading && !emLoading && bbrStatus === 'tom' && (
               <div className="bbr-status bbr-advarsel">BBR: ingen bygning fundet — udfyld manuelt</div>
             )}
             {!bbrLoading && !emLoading && bbrStatus === 'fejl' && (
               <div className="bbr-status bbr-advarsel">BBR-opslag ikke konfigureret — udfyld manuelt</div>
+            )}
+            {!emLoading && emStatus === 'ok' && ejEnergimaerke && (
+              <div className="bbr-status bbr-ok">
+                Energimærke <span className={`em-badge em-${ejEnergimaerke.charAt(0).toLowerCase()}`}>{ejEnergimaerke}</span>
+                {ejEnergimaerkeGyldigt && ` · gyldigt til ${new Date(ejEnergimaerkeGyldigt).toLocaleDateString('da-DK')}`}
+              </div>
+            )}
+            {!emLoading && emStatus === 'tom' && (
+              <div className="bbr-status" style={{ color: 'var(--text-secondary)' }}>Intet energimærke registreret</div>
             )}
 
             {dawaValgt && (
