@@ -837,7 +837,7 @@ button:disabled {
   border-bottom: 1px solid var(--kant);
   margin-bottom: 1.25rem;
   font-size: 0.875rem;
-  color: var(--tekst-sekundaer);
+  color: var(--tekst-graa);
 }
 
 .ejendom-meta-raekke strong {
@@ -848,7 +848,7 @@ button:disabled {
 .energimaerke-sektion h4 {
   font-size: 0.9rem;
   margin: 1rem 0 0.5rem;
-  color: var(--tekst-sekundaer);
+  color: var(--tekst-graa);
   text-transform: uppercase;
   letter-spacing: 0.04em;
 }
@@ -876,7 +876,7 @@ button:disabled {
   font-size: 0.72rem;
   text-transform: uppercase;
   letter-spacing: 0.05em;
-  color: var(--tekst-sekundaer);
+  color: var(--tekst-graa);
 }
 
 .em-kpi-vaerdi {
