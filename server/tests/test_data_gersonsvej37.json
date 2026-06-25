@@ -1,0 +1,132 @@
+{
+  "GetEnergyLabelImprovementSuggestionsResult": {
+    "Address": "Gersonsvej 37, 2900 Hellerup",
+    "BBRNumber": "157-72994",
+    "NumberOfEnergyLabelsFound": 2,
+    "EnergyLabels": [
+      {
+        "Address": "Gersonsvej 37, 2900 Hellerup",
+        "BBRNumber": "157-72994",
+        "BFENumber": "2005013",
+        "CityName": "Hellerup",
+        "CurrentEnergyLabel": "E",
+        "DEMOLink": "https://sparenergi.dk/energimærke?adresseval=Gersonsvej%2037,%202900",
+        "EnergyLabelNumber": 200027385,
+        "HasPDF": true,
+        "HasXML": true,
+        "HouseNumber": "37",
+        "LabelStatus": "EXPIRED",
+        "LabelStatusCode": "3",
+        "MunicipalityNumber": "157",
+        "Ownership": "Private",
+        "PDF": "https://prod.emoweb.local:91/EMOData/emodata.svc/GetEnergyLabelPDFToBrowser/200027385",
+        "PropertyNumber": "72994",
+        "StreetName": "Gersonsvej",
+        "ValidFrom": "28-01-2010",
+        "ValidTo": "28-01-2020",
+        "ZipCode": 2900,
+        "Proposals": [
+          {
+            "BuildingNumber": "",
+            "EnergySaved": "0",
+            "Investment": 0,
+            "LifeTime": 0,
+            "Profitable": true,
+            "ProposalGroupID": 1234487,
+            "ProposalHeadline": "Tidsur på brugsvandscirkulationspumpen",
+            "ProposalText": "Det anbefales at montere et tidsur...",
+            "Recommended": "Not",
+            "Savings": "0",
+            "SeebClassification": "2-2-2-0",
+            "SeebClassificationDescription": "Varmerør"
+          },
+          {
+            "BuildingNumber": "",
+            "EnergySaved": "0",
+            "Investment": 56500,
+            "LifeTime": 40,
+            "Profitable": true,
+            "ProposalGroupID": 1234490,
+            "ProposalHeadline": "Isolering af gulv mod kælder",
+            "ProposalText": "Under de gjorte forudsætninger...",
+            "Recommended": "Not",
+            "Savings": "0",
+            "SeebClassification": "1-4-2-0",
+            "SeebClassificationDescription": "Etageadskillelse"
+          }
+        ]
+      },
+      {
+        "Address": "Gersonsvej 37, 2900 Hellerup",
+        "BBRNumber": "157-72994",
+        "BFENumber": "2005013",
+        "CityName": "Hellerup",
+        "CurrentEnergyLabel": "C",
+        "DEMOLink": "https://sparenergi.dk/energimærke?adresseval=Gersonsvej%2037,%202900",
+        "EnergyLabelNumber": 311437476,
+        "HasPDF": true,
+        "HasXML": true,
+        "HouseNumber": "37",
+        "LabelStatus": "VALID",
+        "LabelStatusCode": "1",
+        "MunicipalityNumber": "157",
+        "Ownership": "Private",
+        "PDF": "https://prod.emoweb.local:91/EMOData/emodata.svc/GetEnergyLabelPDFToBrowser/311437476",
+        "PropertyNumber": "72994",
+        "StreetName": "Gersonsvej",
+        "ValidFrom": "13-05-2020",
+        "ValidTo": "13-05-2030",
+        "ZipCode": 2900,
+        "Proposals": [
+          {
+            "BuildingNumber": "1",
+            "EnergySaved": "11584",
+            "Investment": 248900,
+            "LifeTime": 40,
+            "Profitable": true,
+            "ProposalGroupID": 0,
+            "ProposalHeadline": "Udvendig efterisolering af massive ydervaegge",
+            "ProposalText": "Udvendig efterisolering med 100 mm isolering...",
+            "Recommended": "Not",
+            "Savings": "8800",
+            "SeebClassification": "1-2-2-0",
+            "SeebClassificationDescription": "Massive ydervægge"
+          },
+          {
+            "BuildingNumber": "1",
+            "EnergySaved": "2883",
+            "Investment": 81400,
+            "LifeTime": 30,
+            "Profitable": false,
+            "ProposalGroupID": 3,
+            "ProposalHeadline": "Udskiftning af eksisterende vinduer uden energiruder",
+            "ProposalText": "Eksisterende vinduer uden energiruder foreslås udskiftet...",
+            "Recommended": "Not",
+            "Savings": "2200",
+            "SeebClassification": "1-3-1-0",
+            "SeebClassificationDescription": "Vinduer"
+          },
+          {
+            "BuildingNumber": "1",
+            "EnergySaved": "3275",
+            "Investment": 82400,
+            "LifeTime": 40,
+            "Profitable": true,
+            "ProposalGroupID": 5,
+            "ProposalHeadline": "Udvendig efterisolering af uisolerede kaelderydervaegge",
+            "ProposalText": "Udvendig efterisolering med 200 mm isoleringsplader...",
+            "Recommended": "Not",
+            "Savings": "2500",
+            "SeebClassification": "1-2-4-0",
+            "SeebClassificationDescription": "Kælder ydervægge"
+          }
+        ]
+      }
+    ],
+    "Response": {
+      "ErrorCode": 0,
+      "Message": "EnergyLabel returneret succesfuldt",
+      "Status": "RESULT_OK"
+    }
+  }
+}
