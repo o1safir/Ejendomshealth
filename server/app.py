@@ -110,7 +110,7 @@ async def generer_rapport(req: GenererRequest):
                         "label_status": nyeste_maerke.label_status,
                         "rapport_url": nyeste_maerke.demo_link,
                         "pdf_link": nyeste_maerke.pdf_link,
-                        "rå_respons": nyeste_maerke.raa_respons,
+                        "raa_respons": nyeste_maerke.raa_respons,
                     }
                 )
                 .execute()
