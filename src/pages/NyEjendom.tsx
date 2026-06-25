@@ -1,12 +1,11 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase, Boligtype, RapportType } from "../lib/supabase";
+import AdresseAutocomplete, { DawaAdresse } from "../components/AdresseAutocomplete";
 
 export default function NyEjendom() {
   const navigate = useNavigate();
-  const [adresse, setAdresse] = useState("");
-  const [postnummer, setPostnummer] = useState("");
-  const [by, setBy] = useState("");
+  const [valgtAdresse, setValgtAdresse] = useState<DawaAdresse | null>(null);
   const [boligtype, setBoligtype] = useState<Boligtype>("villa");
   const [rapportType, setRapportType] = useState<RapportType>("privat");
   const [gemmer, setGemmer] = useState(false);
@@ -14,15 +13,28 @@ export default function NyEjendom() {
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
+
+    if (!valgtAdresse) {
+      setFejl("Vælg en adresse fra listen, så den kan slås op korrekt i BBR.");
+      return;
+    }
+
     setGemmer(true);
     setFejl(null);
+
+    const adresseLinje = `${valgtAdresse.vejnavn} ${valgtAdresse.husnr}${
+      valgtAdresse.etage ? `, ${valgtAdresse.etage}.` : ""
+    }${valgtAdresse.doer ? ` ${valgtAdresse.doer}` : ""}`;
 
     const { data, error } = await supabase
       .from("ejendomme")
       .insert({
-        adresse,
-        postnummer,
-        by,
+        adresse: adresseLinje,
+        vejnavn: valgtAdresse.vejnavn,
+        husnummer: valgtAdresse.husnr,
+        postnummer: valgtAdresse.postnr,
+        by: valgtAdresse.postnrnavn,
+        dawa_adgangsadresse_id: valgtAdresse.id,
         boligtype,
         rapport_type: rapportType,
         antal_enheder_paa_adresse: 1,
@@ -56,37 +68,19 @@ export default function NyEjendom() {
       <form onSubmit={handleSubmit} className="space-y-5 font-body">
         <div>
           <label className="block text-sm font-medium mb-1">Adresse</label>
-          <input
-            required
-            value={adresse}
-            onChange={(e) => setAdresse(e.target.value)}
-            placeholder="Strandvejen 100"
-            className="w-full border border-line rounded px-3 py-2 bg-white focus:outline-none focus:ring-2 focus:ring-accent"
-          />
+          <AdresseAutocomplete onVælg={setValgtAdresse} />
+          <p className="text-xs text-slate mt-1">
+            Slår op mod DAWA (offentligt adresseregister). Postnummer og by
+            udfyldes automatisk ved valg.
+          </p>
         </div>
 
-        <div className="flex gap-4">
-          <div className="flex-1">
-            <label className="block text-sm font-medium mb-1">Postnummer</label>
-            <input
-              required
-              value={postnummer}
-              onChange={(e) => setPostnummer(e.target.value)}
-              placeholder="2900"
-              className="w-full border border-line rounded px-3 py-2 bg-white focus:outline-none focus:ring-2 focus:ring-accent"
-            />
+        {valgtAdresse && (
+          <div className="text-sm bg-accent/10 border border-accent/30 rounded px-3 py-2">
+            <span className="text-slate">Valgt: </span>
+            {valgtAdresse.visningstekst}
           </div>
-          <div className="flex-[2]">
-            <label className="block text-sm font-medium mb-1">By</label>
-            <input
-              required
-              value={by}
-              onChange={(e) => setBy(e.target.value)}
-              placeholder="Hellerup"
-              className="w-full border border-line rounded px-3 py-2 bg-white focus:outline-none focus:ring-2 focus:ring-accent"
-            />
-          </div>
-        </div>
+        )}
 
         <div>
           <label className="block text-sm font-medium mb-1">Boligtype</label>

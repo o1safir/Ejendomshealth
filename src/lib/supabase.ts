@@ -24,6 +24,9 @@ export type RapportType = "privat" | "investor";
 export interface Ejendom {
   id: string;
   bfe_nummer: string | null;
+  dawa_adgangsadresse_id: string | null;
+  vejnavn: string | null;
+  husnummer: string | null;
   adresse: string;
   postnummer: string;
   by: string;
