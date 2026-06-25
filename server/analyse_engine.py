@@ -71,7 +71,7 @@ def beregn_score(input: AnalyseInput, byggeperiode_label: str) -> tuple[int, str
     sammenligningsdata. Tænk på dette som en startmodel, ikke et facit.
     """
     base_score = {
-        "A2020": 95, "A2015": 90, "A2010": 85,
+        "A2020": 95, "A2015": 90, "A2010": 85, "A": 90,
         "B": 75, "C": 60, "D": 45, "E": 30, "F": 20, "G": 10,
     }.get(input.energimaerke, 50)  # 50 = neutral hvis intet mærke
 
@@ -88,18 +88,24 @@ def beregn_score(input: AnalyseInput, byggeperiode_label: str) -> tuple[int, str
 
 def prioriter_energiforslag(forslag: list[dict]) -> list[dict]:
     """
-    Sorterer EMO's forbedringsforslag efter tilbagebetalingstid.
-    Dette er den konkrete værditilvækst: EMO-rapporten lister forslag,
-    men prioriterer dem ikke i forhold til hinanden.
+    Prioriterer EMOData's forbedringsforslag. Bruger feltnavne som de
+    faktisk kommer fra emodata_client.py (investering_kr, besparelse_kr_aar,
+    profitabel), bekræftet mod et reelt API-svar.
+
+    Sorteringslogik: profitable forslag (EMO's eget Profitable-flag) først,
+    derefter efter simpel tilbagebetalingstid inden for hver gruppe. Det
+    er bevidst IKKE kun payback-sortering, fordi et forslag kan være
+    "Profitable": true selv med lang payback, hvis EMO's egen levetids-
+    beregning viser det betaler sig over forslagets levetid.
     """
-    def payback(f):
+    def sorteringsnoegle(f):
         besparelse = f.get("besparelse_kr_aar") or 0
         investering = f.get("investering_kr") or 0
-        if besparelse <= 0:
-            return float("inf")
-        return investering / besparelse
+        payback = investering / besparelse if besparelse > 0 else float("inf")
+        # Profitable=False rykkes bagest (True sorterer som 0, False som 1)
+        return (not f.get("profitabel", False), payback)
 
-    sorteret = sorted(forslag, key=payback)
+    sorteret = sorted(forslag, key=sorteringsnoegle)
     for i, f in enumerate(sorteret, start=1):
         f["prioritet"] = i
     return sorteret
